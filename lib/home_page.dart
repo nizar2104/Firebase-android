@@ -16,9 +16,9 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: Column(
           children: [
-            const Text('CDJ-3000 Simulator', textAlign: TextAlign.center),
+            const Text('CDJ SIMULATOR', textAlign: TextAlign.center),
             Text(
-              'By No-Mad',
+              'BY NO-MAD',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey.shade400,
