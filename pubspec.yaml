@@ -27,6 +27,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/logo.png
+    - assets/images/jogwheel.png
 
 flutter_icons:
   android: "launcher_icon"
