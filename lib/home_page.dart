@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'scan_provider.dart';
 import 'results_page.dart';
+import 'models/dj_gear.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -50,12 +51,12 @@ class HomePage extends StatelessWidget {
                       ),
                     );
                   } else if (scanProvider.results.isNotEmpty) {
-                    // Navigate to results page after scan
                     Future.microtask(() => Navigator.push(
                           context,
                           MaterialPageRoute(
                               builder: (context) => const ResultsPage()),
-                        ));
+                        ).then((_) => scanProvider.results.clear())); // Clear results on return
+
                     return const Center(
                       child: Text('Scan complete. Loading results...',
                         style: TextStyle(
@@ -65,15 +66,7 @@ class HomePage extends StatelessWidget {
                       ),
                     );
                   } else {
-                    return const Center(
-                      child: Text(
-                        'Insert USB and press "USB" button',
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 18,
-                        ),
-                      ),
-                    );
+                    return const _GearSelectionScreen();
                   }
                 },
               ),
@@ -106,6 +99,47 @@ class HomePage extends StatelessWidget {
     );
   }
 }
+
+class _GearSelectionScreen extends StatelessWidget {
+  const _GearSelectionScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final scanProvider = Provider.of<ScanProvider>(context);
+    final gearCategories = djGearList.map((e) => e.category).toSet().toList();
+
+    return ListView.builder(
+      itemCount: gearCategories.length,
+      itemBuilder: (context, index) {
+        final category = gearCategories[index];
+        final gearInCategory = djGearList.where((gear) => gear.category == category).toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+              child: Text(category, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: const Color(0xFFF5B50A))),
+            ),
+            ...gearInCategory.map((gear) => RadioListTile<DjGear>(
+              title: Text(gear.name, style: const TextStyle(color: Colors.white)),
+              value: gear,
+              groupValue: scanProvider.selectedGear,
+              onChanged: (DjGear? value) {
+                if (value != null) {
+                  scanProvider.selectGear(value);
+                }
+              },
+              activeColor: const Color(0xFFDF1F26),
+              controlAffinity: ListTileControlAffinity.trailing,
+            )),
+          ],
+        );
+      },
+    );
+  }
+}
+
 
 class _UsbSlot extends StatelessWidget {
   const _UsbSlot();
@@ -147,29 +181,23 @@ class _HardwareButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ScanProvider>(
       builder: (context, scanProvider, child) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                if (!scanProvider.isLoading) {
-                  scanProvider.selectAndScanDirectory();
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF5B50A), // Yellow
-                shape: const CircleBorder(),
-                padding: const EdgeInsets.all(24),
-              ),
-              child: const Text('USB',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
+        final isGearSelected = scanProvider.selectedGear != null;
+        return ElevatedButton(
+          onPressed: isGearSelected && !scanProvider.isLoading
+              ? () => scanProvider.selectAndScanDirectory()
+              : null,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isGearSelected ? const Color(0xFFF5B50A) : Colors.grey,
+            shape: const CircleBorder(),
+            padding: const EdgeInsets.all(32),
+          ),
+          child: const Text('USB',
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
             ),
-          ],
+          ),
         );
       },
     );
