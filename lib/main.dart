@@ -57,8 +57,8 @@ class MyApp extends StatelessWidget {
         ),
       ),
        radioTheme: RadioThemeData(
-        fillColor: MaterialStateColor.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        fillColor: WidgetStateColor.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return const Color(0xFFFF0000); // Rekordbox Red when selected
           }
           return Colors.grey; // Grey when not selected
