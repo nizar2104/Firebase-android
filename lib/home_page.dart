@@ -191,7 +191,7 @@ class _HardwareButtons extends StatelessWidget {
             shape: const CircleBorder(),
             padding: const EdgeInsets.all(32),
           ),
-          child: const Text('USB',
+          child: const Text('SCAN', // Changed from USB to SCAN
             style: TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.bold,

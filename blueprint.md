@@ -9,7 +9,7 @@ This document outlines the plan for creating a Flutter application that scans US
 
 - **CDJ-style UI**: A dark, immersive user interface that resembles the look and feel of a Pioneer CDJ, providing a familiar experience for DJs.
 - **DJ Gear Selection**: Before scanning, the user must select their specific DJ gear model from a comprehensive list. This tailors the compatibility check to the selected hardware.
-- **USB Drive Selection**: Allow the user to select the root of their USB drive by pressing a hardware-style "USB" button, which is enabled only after selecting a gear model.
+- **USB Drive Selection**: Allow the user to select the root of their USB drive by pressing a hardware-style "SCAN" button, which is enabled only after selecting a gear model.
 - **Model-Specific Compatibility Analysis**: Run a series of checks on the selected drive based on the limitations of the chosen DJ gear model (e.g., FLAC support, exFAT support).
 - **Detailed Report**: Display a clear, model-specific report of the findings on a simulated CDJ screen, indicating whether the drive is compatible and what issues were found.
 
@@ -19,7 +19,7 @@ This document outlines the plan for creating a Flutter application that scans US
 - **Typography**: `google_fonts` are used to match the digital look of DJ equipment displays:
     - `Orbitron`: For titles and headers.
     - `Roboto`: For body text.
-- **Iconography**: Material icons are styled to match the theme and enhance usability.
+- **Iconography**: Material icons are styled to aTnd enhance usability.
 
 ## Technical Plan
 
@@ -35,7 +35,7 @@ This document outlines the plan for creating a Flutter application that scans US
 ### Step 3: Application Structure & UI (Completed)
 
 - **`main.dart`**: Configured the main `MaterialApp` with the dark, CDJ-inspired theme.
-- **`HomePage.dart`**: Redesigned into a gear selection screen. The main "screen" area now lists all DJ gear models, grouped by category. The user must select a model before the "USB" scan button becomes active.
+- **`HomePage.dart`**: Redesigned into a gear selection screen. The main "screen" area now lists all DJ gear models, grouped by category. The user must select a model before the "SCAN" button becomes active.
 - **`ResultsPage.dart`**: Updated to display a report tailored to the selected model. The title now dynamically shows which gear the report is for (e.g., "Report for XDJ-XZ").
 
 ### Step 4: Core Logic (Completed)
@@ -53,6 +53,7 @@ This document outlines the plan for creating a Flutter application that scans US
 - The application flow is now more robust and user-centric.
 - The user is guided to first select their gear, ensuring the subsequent analysis is relevant.
 - The results are more precise, providing actionable feedback based on the user's specific hardware.
+- The main call-to-action button has been updated from "USB" to "SCAN" for clarity.
 
 ---
 
