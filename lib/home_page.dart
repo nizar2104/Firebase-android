@@ -1,6 +1,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'scan_provider.dart';
 import 'results_page.dart';
 import 'models/dj_gear.dart';
@@ -67,7 +69,7 @@ class HomePage extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                               builder: (context) => const ResultsPage()),
-                        ).then((_) => scanProvider.results.clear())); // Clear results on return
+                        ).then((_) => scanProvider.results.clear()));
 
                     return const Center(
                       child: Text('Scan complete. Loading results...',
@@ -102,6 +104,8 @@ class HomePage extends StatelessWidget {
                   _UsbSlot(),
                   SizedBox(height: 20),
                   _HardwareButtons(),
+                  SizedBox(height: 20),
+                  _SupportLink(),
                 ],
               ),
             ),
@@ -203,7 +207,7 @@ class _HardwareButtons extends StatelessWidget {
             shape: const CircleBorder(),
             padding: const EdgeInsets.all(32),
           ),
-          child: const Text('SCAN', // Changed from USB to SCAN
+          child: const Text('SCAN',
             style: TextStyle(
               color: Colors.black,
               fontWeight: FontWeight.bold,
@@ -212,6 +216,34 @@ class _HardwareButtons extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _SupportLink extends StatelessWidget {
+  const _SupportLink();
+
+  void _launchURL() async {
+    final Uri url = Uri.parse('https://www.instagram.com/no_mad_pioneer/');
+    if (!await launchUrl(url)) {
+      throw 'Could not launch $url';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          'Liked this tool? Support me here:',
+          style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+        ),
+        const SizedBox(height: 8),
+        IconButton(
+          icon: const FaIcon(FontAwesomeIcons.instagram, color: Colors.white, size: 30),
+          onPressed: _launchURL,
+        ),
+      ],
     );
   }
 }
