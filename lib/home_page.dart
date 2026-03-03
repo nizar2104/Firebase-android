@@ -205,28 +205,38 @@ class _HardwareButtons extends StatelessWidget {
     return Consumer<ScanProvider>(
       builder: (context, scanProvider, child) {
         final isGearSelected = scanProvider.selectedGear != null;
-        return SizedBox(
-          width: 150,
-          height: 150,
-          child: ElevatedButton(
-            onPressed: isGearSelected && !scanProvider.isLoading
-                ? () => scanProvider.selectAndScanDirectory()
-                : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isGearSelected ? const Color(0xFFFFFF00) : Colors.grey.shade800,
-              foregroundColor: Colors.black,
-              shape: const CircleBorder(),
-              elevation: 8,
-              shadowColor: isGearSelected ? const Color(0xFFFFFF00).withOpacity(0.5) : Colors.transparent,
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            Image.asset(
+              'assets/images/jogwheel.png',
+              width: 250,
+              height: 250,
             ),
-            child: const Text(
-              'SCAN',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 36,
+            SizedBox(
+              width: 150,
+              height: 150,
+              child: ElevatedButton(
+                onPressed: isGearSelected && !scanProvider.isLoading
+                    ? () => scanProvider.selectAndScanDirectory()
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isGearSelected ? const Color(0xFFFFFF00) : Colors.grey.shade800,
+                  foregroundColor: Colors.black,
+                  shape: const CircleBorder(),
+                  elevation: 8,
+                  shadowColor: isGearSelected ? const Color(0xFFFFFF00).withOpacity(0.5) : Colors.transparent,
+                ),
+                child: const Text(
+                  'SCAN',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 36,
+                  ),
+                ),
               ),
             ),
-          ),
+          ],
         );
       },
     );
