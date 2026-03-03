@@ -137,6 +137,30 @@ class _GearSelectionScreenState extends State<_GearSelectionScreen> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
+        if (_selectedCategory == null)
+          Column(
+            children: [
+              Image.asset('assets/images/logo.png', height: 100),
+              const SizedBox(height: 20),
+              const Text(
+                'Welcome to the CDJ Simulator!',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Select a category to begin.',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 30),
+            ],
+          ),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           decoration: BoxDecoration(
@@ -179,7 +203,7 @@ class _GearSelectionScreenState extends State<_GearSelectionScreen> {
               isExpanded: true,
               dropdownColor: const Color(0xFF1E1E1E),
               underline: const SizedBox(),
-              onChanged: (DjGear? value) {
+.onChanged(DjGear? value) {
                 if (value != null) {
                   scanProvider.selectGear(value);
                 }
