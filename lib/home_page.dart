@@ -134,62 +134,34 @@ class _GearSelectionScreenState extends State<_GearSelectionScreen> {
         ? <DjGear>[]
         : djGearList.where((gear) => gear.category == _selectedCategory).toList();
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (_selectedCategory == null)
-          Column(
-            children: [
-              Image.asset('assets/images/logo.png', height: 100),
-              const SizedBox(height: 20),
-              const Text(
-                'Welcome to the CDJ Simulator!',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (_selectedCategory == null)
+            Column(
+              children: [
+                Image.asset('assets/images/logo.png', height: 100),
+                const SizedBox(height: 20),
+                const Text(
+                  'Welcome to the CDJ Simulator!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Select a category to begin.',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
+                const SizedBox(height: 10),
+                const Text(
+                  'Select a category to begin.',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 30),
-            ],
-          ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
-            borderRadius: BorderRadius.circular(8.0),
-            border: Border.all(color: Colors.grey.shade800),
-          ),
-          child: DropdownButton<String>(
-            value: _selectedCategory,
-            hint: const Text('Select a category', style: TextStyle(color: Colors.white)),
-            isExpanded: true,
-            dropdownColor: const Color(0xFF1E1E1E),
-            underline: const SizedBox(),
-            onChanged: (String? value) {
-              setState(() {
-                _selectedCategory = value;
-                scanProvider.selectGear(null);
-              });
-            },
-            items: gearCategories.map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value, style: const TextStyle(color: Colors.white)),
-              );
-            }).toList(),
-          ),
-        ),
-        const SizedBox(height: 20),
-        if (_selectedCategory != null)
+                const SizedBox(height: 30),
+              ],
+            ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             decoration: BoxDecoration(
@@ -197,26 +169,56 @@ class _GearSelectionScreenState extends State<_GearSelectionScreen> {
               borderRadius: BorderRadius.circular(8.0),
               border: Border.all(color: Colors.grey.shade800),
             ),
-            child: DropdownButton<DjGear>(
-              value: scanProvider.selectedGear,
-              hint: const Text('Select a gear', style: TextStyle(color: Colors.white)),
+            child: DropdownButton<String>(
+              value: _selectedCategory,
+              hint: const Text('Select a category', style: TextStyle(color: Colors.white)),
               isExpanded: true,
               dropdownColor: const Color(0xFF1E1E1E),
               underline: const SizedBox(),
-              onChanged: (DjGear? value) {
-                if (value != null) {
-                  scanProvider.selectGear(value);
-                }
+              onChanged: (String? value) {
+                setState(() {
+                  _selectedCategory = value;
+                  scanProvider.selectGear(null);
+                });
               },
-              items: gearInCategory.map<DropdownMenuItem<DjGear>>((DjGear value) {
-                return DropdownMenuItem<DjGear>(
+              items: gearCategories.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value.name, style: const TextStyle(color: Colors.white)),
+                  child: Text(value, style: const TextStyle(color: Colors.white)),
                 );
               }).toList(),
             ),
           ),
-      ],
+          const SizedBox(height: 20),
+          if (_selectedCategory != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1E1E),
+                borderRadius: BorderRadius.circular(8.0),
+                border: Border.all(color: Colors.grey.shade800),
+              ),
+              child: DropdownButton<DjGear>(
+                value: scanProvider.selectedGear,
+                hint: const Text('Select a gear', style: TextStyle(color: Colors.white)),
+                isExpanded: true,
+                dropdownColor: const Color(0xFF1E1E1E),
+                underline: const SizedBox(),
+                onChanged: (DjGear? value) {
+                  if (value != null) {
+                    scanProvider.selectGear(value);
+                  }
+                },
+                items: gearInCategory.map<DropdownMenuItem<DjGear>>((DjGear value) {
+                  return DropdownMenuItem<DjGear>(
+                    value: value,
+                    child: Text(value.name, style: const TextStyle(color: Colors.white)),
+                  );
+                }).toList(),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
