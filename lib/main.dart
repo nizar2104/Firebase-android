@@ -3,29 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'scan_provider.dart';
-import 'results_page.dart';
+import 'home_page.dart';
 
 void main() {
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (context) => ThemeProvider()),
-        ChangeNotifierProvider(create: (context) => ScanProvider()),
-      ],
+    ChangeNotifierProvider(
+      create: (context) => ScanProvider(),
       child: const MyApp(),
     ),
   );
-}
-
-class ThemeProvider with ChangeNotifier {
-  ThemeMode _themeMode = ThemeMode.system;
-
-  ThemeMode get themeMode => _themeMode;
-
-  void toggleTheme() {
-    _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-    notifyListeners();
-  }
 }
 
 class MyApp extends StatelessWidget {
@@ -33,95 +19,63 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const Color primarySeedColor = Colors.deepPurple;
-
-    final TextTheme appTextTheme = TextTheme(
-      displayLarge: GoogleFonts.oswald(fontSize: 57, fontWeight: FontWeight.bold),
-      titleLarge: GoogleFonts.roboto(fontSize: 22, fontWeight: FontWeight.w500),
-      bodyMedium: GoogleFonts.openSans(fontSize: 14),
-    );
-
-    final ThemeData lightTheme = ThemeData(
-      useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primarySeedColor,
-        brightness: Brightness.light,
-      ),
-      textTheme: appTextTheme,
-    );
-
+    // Define the dark theme inspired by CDJ equipment
     final ThemeData darkTheme = ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primarySeedColor,
-        brightness: Brightness.dark,
+      brightness: Brightness.dark,
+      primaryColor: const Color(0xFFDF1F26), // Pioneer DJ Red
+      scaffoldBackgroundColor: const Color(0xFF121212), // Dark background
+      colorScheme: const ColorScheme.dark(
+        primary: Color(0xFFDF1F26), // Red
+        secondary: Color(0xFFF5B50A), // Yellow
+        surface: Color(0xFF1E1E1E),
+        onSurface: Colors.white,
       ),
-      textTheme: appTextTheme,
-    );
-
-    return Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) {
-        return MaterialApp(
-          title: 'USB Validator',
-          theme: lightTheme,
-          darkTheme: darkTheme,
-          themeMode: themeProvider.themeMode,
-          home: const HomePage(),
-        );
-      },
-    );
-  }
-}
-
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final scanProvider = Provider.of<ScanProvider>(context);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('USB Validator'),
-        actions: [
-          IconButton(
-            icon: Icon(Provider.of<ThemeProvider>(context).themeMode == ThemeMode.dark ? Icons.light_mode : Icons.dark_mode),
-            onPressed: () => Provider.of<ThemeProvider>(context, listen: false).toggleTheme(),
-            tooltip: 'Toggle Theme',
-          ),
-        ],
+      textTheme: GoogleFonts.robotoTextTheme(
+        ThemeData.dark().textTheme,
+      ).copyWith(
+        displayLarge: GoogleFonts.orbitron(
+          fontWeight: FontWeight.bold,
+          fontSize: 36,
+          color: Colors.white,
+        ),
+        titleLarge: GoogleFonts.orbitron(
+          fontWeight: FontWeight.w500,
+          fontSize: 22,
+          color: Colors.white,
+        ),
+        bodyMedium: GoogleFonts.roboto(
+          fontSize: 14,
+          color: Colors.white,
+        ),
+        labelLarge: GoogleFonts.roboto(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.black
+        )
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'Check USB for CDJ/XDJ Compatibility',
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            if (scanProvider.isLoading)
-              const CircularProgressIndicator()
-            else
-              ElevatedButton.icon(
-                onPressed: () async {
-                  await scanProvider.selectAndScanDirectory();
-                  if (scanProvider.results.isNotEmpty) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ResultsPage(),
-                      ),
-                    );
-                  }
-                },
-                icon: const Icon(Icons.usb),
-                label: const Text('Select & Scan USB Drive'),
-              ),
-          ],
+      appBarTheme: AppBarTheme(
+        backgroundColor: const Color(0xFF1E1E1E),
+        foregroundColor: Colors.white,
+        titleTextStyle: GoogleFonts.orbitron(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
         ),
       ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          foregroundColor: Colors.black, // Button text color
+          backgroundColor: const Color(0xFFF5B50A), // Yellow
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        ),
+      ),
+    );
+
+    return MaterialApp(
+      title: 'CDJ Compatibility Checker',
+      theme: darkTheme,
+      home: const HomePage(),
     );
   }
 }

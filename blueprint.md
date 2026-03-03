@@ -3,22 +3,22 @@
 
 ## Overview
 
-This document outlines the plan for creating a Flutter application that scans USB drives (via OTG on mobile or direct access on desktop) to check their compatibility with Pioneer DJ equipment like CDJs and XDJs. The app is inspired by the web-based "USB VALIDATOR & COMPATIBILITY CHECKER".
+This document outlines the plan for creating a Flutter application that scans USB drives (via OTG on mobile or direct access on desktop) to check their compatibility with Pioneer DJ equipment like CDJs and XDJs. The app is inspired by the web-based "USB VALIDATOR & COMPATIBILITY CHECKER" and visually mimics the hardware interface of a Pioneer CDJ-3000.
 
 ## Core Features
 
-- **USB Drive Selection**: Allow the user to select the root of their USB drive.
+- **CDJ-style UI**: A dark, immersive user interface that resembles the look and feel of a Pioneer CDJ, providing a familiar experience for DJs.
+- **USB Drive Selection**: Allow the user to select the root of their USB drive by pressing a hardware-style "USB" button.
 - **Compatibility Analysis**: Run a series of checks on the selected drive.
-- **Detailed Report**: Display a clear report of the findings, indicating whether the drive is compatible and what issues, if any, were found.
-- **Modern UI**: A clean, intuitive, and visually appealing user interface based on Material Design 3.
-- **Cross-Platform**: The app will be built with Flutter to target both mobile (Android/iOS) and web/desktop from a single codebase.
+- **Detailed Report**: Display a clear report of the findings on a simulated CDJ screen, indicating whether the drive is compatible and what issues, if any, were found.
 
 ## Design and Style
 
-- **Theme**: Material 3 with a dark and light mode.
-- **Color Scheme**: A modern color palette will be chosen to create a visually appealing experience.
-- **Typography**: `google_fonts` will be used for clean and readable text.
-- **Iconography**: Material icons will be used to enhance usability.
+- **Theme**: A dark, CDJ-inspired theme with a black and dark gray color palette, accented with Pioneer DJ red and yellow.
+- **Typography**: `google_fonts` are used to match the digital look of DJ equipment displays:
+    - `Orbitron`: For titles and headers, providing a tech-inspired feel.
+    - `Roboto`: For body text, ensuring readability.
+- **Iconography**: Material icons are styled to match the theme and enhance usability.
 
 ## Technical Plan
 
@@ -34,15 +34,14 @@ This document outlines the plan for creating a Flutter application that scans US
 ### Step 2: Application Structure & UI (Completed)
 
 - **`main.dart`**:
-    - Set up the main `MaterialApp` with a `ThemeProvider`.
-    - Define the Material 3 light and dark themes.
-    - Create a home screen (`HomePage`).
+    - Set up the main `MaterialApp` with a dark, CDJ-inspired theme.
+    - Define the color scheme and typography to match the hardware aesthetic.
 - **`HomePage.dart`**:
-    - A `Scaffold` with an `AppBar`.
-    - A central button labeled "Select & Scan USB Drive".
-    - A loading indicator that shows when analysis is in progress.
+    - A `Scaffold` designed to look like a CDJ-3000.
+    - A main "screen" area to display information and loading status.
+    - A simulated "USB slot" and a large, circular "USB" button to trigger the scan.
 - **`ResultsPage.dart`**:
-    - A screen to display the compatibility check results in a clear, list-based format.
+    - A screen styled to look like the CDJ's display, presenting the compatibility results in a clear and concise manner.
 
 ### Step 3: Core Logic (Completed)
 
@@ -61,18 +60,17 @@ This document outlines the plan for creating a Flutter application that scans US
         - Check for the presence of unsupported special characters in file names.
     - **Check 3: Album Art**:
         - Detect the presence of common image formats that could be album art.
-    - **Check 4: File System Format (New)**:
+    - **Check 4: File System Format**:
         - Use a platform channel to get the file system type from the native Android side.
         - Check if the file system is one of the compatible formats (FAT32, exFAT, FAT).
 
 ### Step 4: Iteration and Refinement (Completed)
 
-- Implement the UI for the results page to handle different result types (booleans, strings, lists).
-- Test on different platforms (Android, web, desktop).
-- Gather user feedback for future improvements.
+- The UI has been completely redesigned to match the look and feel of a Pioneer CDJ.
+- The results page now displays information in a format that is consistent with the new design.
 
 ---
 
 ## Final Result
 
-The initial version of the USB Validator & Compatibility Checker is now complete. The application allows users to select a directory, and then it runs a series of checks to determine if the selected media is likely to be compatible with Pioneer DJ equipment. The results are presented in a clear and easy-to-understand format. Future work could include adding more detailed checks and providing more detailed explanations and solutions for any issues found.
+The application has been transformed into a CDJ-3000 simulator for the purpose of checking USB drive compatibility. The new design provides a more immersive and familiar experience for DJs. The core functionality remains the same: the app runs a series of checks on a selected directory and presents a report, but now it does so within a much more engaging and stylish interface.
