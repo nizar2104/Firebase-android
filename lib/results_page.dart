@@ -24,7 +24,7 @@ class ResultsPage extends StatelessWidget {
             child: const Text(
               'BACK',
               style: TextStyle(
-                color: Color(0xFFF5B50A), // Yellow
+                color: Color(0xFFFFFF00), // Rekordbox Yellow
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -38,7 +38,6 @@ class ResultsPage extends StatelessWidget {
           final key = results.keys.elementAt(index);
           final value = results[key];
 
-          // Skip empty lists for a cleaner report
           if (value is List && value.isEmpty) {
             return const SizedBox.shrink();
           }
@@ -55,29 +54,29 @@ class ResultsPage extends StatelessWidget {
     Widget trailing = const SizedBox.shrink();
 
     // Default to success
-    iconColor = Colors.green.shade400;
+    iconColor = const Color(0xFF00FF00); // Rekordbox Green
     leadingIcon = Icon(Icons.check_circle, color: iconColor);
 
     if (key == 'File System Format') {
       final isCompatible = !(value.toString().toLowerCase() == 'exfat' &&
           !(Provider.of<ScanProvider>(context, listen: false).selectedGear?.hasExfatSupport ?? true));
-      iconColor = isCompatible ? Colors.green.shade400 : Colors.red.shade400;
+      iconColor = isCompatible ? const Color(0xFF00FF00) : const Color(0xFFFF0000);
       leadingIcon = Icon(isCompatible ? Icons.check_circle : Icons.cancel, color: iconColor);
     } else if (key == 'exFAT Not Supported') {
-        iconColor = Colors.red.shade400;
+        iconColor = const Color(0xFFFF0000); // Rekordbox Red
         leadingIcon = Icon(Icons.cancel, color: iconColor);
     } else if (key == 'FLAC Files Found (Not Supported)') {
-        iconColor = Colors.red.shade400;
+        iconColor = const Color(0xFFFF0000); // Rekordbox Red
         leadingIcon = Icon(Icons.error, color: iconColor);
         trailing = const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16);
     } else if (key == 'Long File Names (>255 chars)' || key == 'Files with Special Characters') {
         if (value is List && value.isNotEmpty) {
-            iconColor = Colors.orange.shade400;
+            iconColor = const Color(0xFFFFA500); // Rekordbox Orange
             leadingIcon = Icon(Icons.warning, color: iconColor);
             trailing = const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16);
         }
     } else if (value is bool) {
-      iconColor = value ? Colors.green.shade400 : Colors.red.shade400;
+      iconColor = value ? const Color(0xFF00FF00) : const Color(0xFFFF0000);
       leadingIcon = Icon(value ? Icons.check_circle : Icons.cancel, color: iconColor);
     }
 
@@ -126,7 +125,7 @@ class ResultsPage extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E1E),
-        title: Text(title), // Removed explicit font
+        title: Text(title), // Inherits font from theme
         content: SizedBox(
           width: double.maxFinite,
           child: ListView.builder(
@@ -144,7 +143,7 @@ class ResultsPage extends StatelessWidget {
             child: const Text(
               'CLOSE',
               style: TextStyle(
-                color: Color(0xFFF5B50A), // Yellow
+                color: Color(0xFFFFFF00), // Rekordbox Yellow
               ),
             ),
           ),
