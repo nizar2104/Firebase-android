@@ -98,15 +98,17 @@ class HomePage extends StatelessWidget {
                   topRight: Radius.circular(16.0),
                 ),
               ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _UsbSlot(),
-                  SizedBox(height: 20),
-                  _HardwareButtons(),
-                  SizedBox(height: 20),
-                  _SupportLink(),
-                ],
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    const _UsbSlot(),
+                    const SizedBox(height: 20),
+                    const _HardwareButtons(),
+                    const SizedBox(height: 20),
+                    const _SupportLink(),
+                  ],
+                ),
               ),
             ),
           ),
