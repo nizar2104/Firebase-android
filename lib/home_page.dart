@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:dropdown_search/dropdown_search.dart';
 import 'scan_provider.dart';
 import 'results_page.dart';
 import 'models/dj_gear.dart';
@@ -117,84 +116,82 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class _GearSelectionScreen extends StatelessWidget {
+class _GearSelectionScreen extends StatefulWidget {
   const _GearSelectionScreen();
+
+  @override
+  State<_GearSelectionScreen> createState() => _GearSelectionScreenState();
+}
+
+class _GearSelectionScreenState extends State<_GearSelectionScreen> {
+  String? _selectedCategory;
 
   @override
   Widget build(BuildContext context) {
     final scanProvider = Provider.of<ScanProvider>(context);
+    final gearCategories = djGearList.map((e) => e.category).toSet().toList();
+    final gearInCategory = _selectedCategory == null
+        ? <DjGear>[]
+        : djGearList.where((gear) => gear.category == _selectedCategory).toList();
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Padding(
+        Container(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: DropdownSearch<DjGear>(
-            asyncItems: (String filter) async {
-                final allGear = djGearList;
-                if (filter.isEmpty) {
-                    return allGear;
-                }
-                return allGear.where((gear) => gear.name.toLowerCase().contains(filter.toLowerCase())).toList();
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(8.0),
+            border: Border.all(color: Colors.grey.shade800),
+          ),
+          child: DropdownButton<String>(
+            value: _selectedCategory,
+            hint: const Text('Select a category', style: TextStyle(color: Colors.white)),
+            isExpanded: true,
+            dropdownColor: const Color(0xFF1E1E1E),
+            underline: const SizedBox(),
+            onChanged: (String? value) {
+              setState(() {
+                _selectedCategory = value;
+                scanProvider.selectGear(null);
+              });
             },
-            popupProps: PopupProps.menu(
-              showSearchBox: true,
-               searchFieldProps: TextFieldProps(
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: "Search for your gear...",
-                  hintStyle: TextStyle(color: Colors.grey.shade600),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.grey.shade800),
-                  ),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xFFFFFF00)),
-                  ),
-                ),
-              ),
-              menuProps: const MenuProps(
-                backgroundColor: Color(0xFF1E1E1E),
-              ),
-              itemBuilder: (context, item, isSelected) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Text(
-                    item.name,
-                    style: TextStyle(
-                      color: isSelected ? const Color(0xFFFFFF00) : Colors.white,
-                    ),
-                  ),
-                );
-              },
-            ),
-            dropdownDecoratorProps: DropDownDecoratorProps(
-              baseStyle: const TextStyle(color: Colors.white),
-              dropdownSearchDecoration: InputDecoration(
-                labelText: "Select your DJ Gear",
-                labelStyle: const TextStyle(color: Color(0xFFFFFF00)),
-                filled: true,
-                fillColor: const Color(0xFF1E1E1E),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide(color: Colors.grey.shade800),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide(color: Colors.grey.shade800),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: const BorderSide(color: Color(0xFFFFFF00)),
-                ),
-              ),
-            ),
-            itemAsString: (DjGear gear) => gear.name,
-            onChanged: (DjGear? gear) {
-              scanProvider.selectGear(gear);
-            },
-            selectedItem: scanProvider.selectedGear,
+            items: gearCategories.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value, style: const TextStyle(color: Colors.white)),
+              );
+            }).toList(),
           ),
         ),
+        const SizedBox(height: 20),
+        if (_selectedCategory != null)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E1E),
+              borderRadius: BorderRadius.circular(8.0),
+              border: Border.all(color: Colors.grey.shade800),
+            ),
+            child: DropdownButton<DjGear>(
+              value: scanProvider.selectedGear,
+              hint: const Text('Select a gear', style: TextStyle(color: Colors.white)),
+              isExpanded: true,
+              dropdownColor: const Color(0xFF1E1E1E),
+              underline: const SizedBox(),
+              onChanged: (DjGear? value) {
+                if (value != null) {
+                  scanProvider.selectGear(value);
+                }
+              },
+              items: gearInCategory.map<DropdownMenuItem<DjGear>>((DjGear value) {
+                return DropdownMenuItem<DjGear>(
+                  value: value,
+                  child: Text(value.name, style: const TextStyle(color: Colors.white)),
+                );
+              }).toList(),
+            ),
+          ),
       ],
     );
   }
