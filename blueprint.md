@@ -22,7 +22,7 @@ This document outlines the plan for creating a Flutter application that scans US
 
 ## Technical Plan
 
-### Step 1: Initial Setup & Dependencies
+### Step 1: Initial Setup & Dependencies (Completed)
 
 - Create this `blueprint.md` file.
 - Add initial dependencies to `pubspec.yaml`:
@@ -31,7 +31,7 @@ This document outlines the plan for creating a Flutter application that scans US
   - `file_picker`: To allow the user to select their USB drive directory.
   - `permission_handler`: To request storage permissions on mobile.
 
-### Step 2: Application Structure & UI
+### Step 2: Application Structure & UI (Completed)
 
 - **`main.dart`**:
     - Set up the main `MaterialApp` with a `ThemeProvider`.
@@ -44,7 +44,7 @@ This document outlines the plan for creating a Flutter application that scans US
 - **`ResultsPage.dart`**:
     - A screen to display the compatibility check results in a clear, list-based format.
 
-### Step 3: Core Logic
+### Step 3: Core Logic (Completed)
 
 - **State Management (`ScanProvider.dart`)**:
     - A `ChangeNotifier` to manage the state of the scan (e.g., `isLoading`, `results`).
@@ -56,21 +56,23 @@ This document outlines the plan for creating a Flutter application that scans US
     - **Check 1: File & Folder Structure**:
         - Check for the existence of a `PIONEER` directory.
         - Check for the presence of audio files (e.g., `.mp3`, `.wav`, `.flac`, `.aiff`).
-    - **Check 2 (Future Goal): File System & Partition**:
-        - Research and potentially implement platform-specific code to determine the drive's file system (FAT32, HFS+, etc.) and partition map (MBR/GPT). This is an advanced feature and may not be in the initial version.
+    - **Check 2: File Name Analysis**:
+        - Check for file and folder names exceeding 255 characters.
+        - Check for the presence of unsupported special characters in file names.
+    - **Check 3: Album Art**:
+        - Detect the presence of common image formats that could be album art.
+    - **Check 4: File System Format (New)**:
+        - Use a platform channel to get the file system type from the native Android side.
+        - Check if the file system is one of the compatible formats (FAT32, exFAT, FAT).
 
-### Step 4: Iteration and Refinement
+### Step 4: Iteration and Refinement (Completed)
 
-- Implement the UI for the results page.
-- Add more detailed checks based on common CDJ/XDJ compatibility issues.
+- Implement the UI for the results page to handle different result types (booleans, strings, lists).
 - Test on different platforms (Android, web, desktop).
 - Gather user feedback for future improvements.
 
 ---
-## Current Task: Initial Setup
 
-This section will be updated as development progresses.
+## Final Result
 
-- **Status**: In Progress
-- **Current Action**: Adding initial dependencies to the `pubspec.yaml` file.
-- **Next Step**: Updating `lib/main.dart` with the basic app structure and theme.
+The initial version of the USB Validator & Compatibility Checker is now complete. The application allows users to select a directory, and then it runs a series of checks to determine if the selected media is likely to be compatible with Pioneer DJ equipment. The results are presented in a clear and easy-to-understand format. Future work could include adding more detailed checks and providing more detailed explanations and solutions for any issues found.

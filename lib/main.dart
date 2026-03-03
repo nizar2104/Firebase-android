@@ -2,11 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'scan_provider.dart';
+import 'results_page.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        ChangeNotifierProvider(create: (context) => ScanProvider()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -73,6 +78,8 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scanProvider = Provider.of<ScanProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('USB Validator'),
@@ -94,13 +101,24 @@ class HomePage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () {
-                // Add file picker logic here
-              },
-              icon: const Icon(Icons.usb),
-              label: const Text('Select & Scan USB Drive'),
-            ),
+            if (scanProvider.isLoading)
+              const CircularProgressIndicator()
+            else
+              ElevatedButton.icon(
+                onPressed: () async {
+                  await scanProvider.selectAndScanDirectory();
+                  if (scanProvider.results.isNotEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ResultsPage(),
+                      ),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.usb),
+                label: const Text('Select & Scan USB Drive'),
+              ),
           ],
         ),
       ),
