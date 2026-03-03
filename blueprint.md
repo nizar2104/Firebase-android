@@ -8,11 +8,11 @@ This document outlines the plan for creating a Flutter application that scans US
 ## Core Features
 
 - **CDJ-style UI**: A dark, immersive user interface that resembles the look and feel of a Pioneer CDJ, providing a familiar experience for DJs.
-- **DJ Gear Selection**: Before scanning, the user must select their specific DJ gear model from a comprehensive list. This tailors the compatibility check to the selected hardware.
+- **DJ Gear Selection**: Before scanning, the user must select their specific DJ gear model from a comprehensive list using a space-saving dropdown menu.
 - **USB Drive Selection**: Allow the user to select the root of their USB drive by pressing a hardware-style "SCAN" button, which is enabled only after selecting a gear model.
 - **Model-Specific Compatibility Analysis**: Run a series of checks on the selected drive based on the limitations of the chosen DJ gear model (e.g., FLAC support, exFAT support).
 - **Detailed Report**: Display a clear, model-specific report of the findings on a simulated CDJ screen, indicating whether the drive is compatible and what issues were found.
-- **Support Link**: A non-intrusive link for users to support the developer via an Instagram page.
+- **Support Section**: A dedicated section with buttons for users to support the developer by following on Instagram or making a donation.
 
 ## Design and Style
 
@@ -35,10 +35,13 @@ This document outlines the plan for creating a Flutter application that scans US
 
 - **`models/dj_gear.dart`**: Created a `DjGear` class to store the name, category, and compatibility flags (e.g., `hasFlacSupport`, `hasExfatSupport`) for each piece of equipment. Populated a list with all supported models.
 
-### Step 3: Application Structure & UI (Completed)
+### Step 3: Application Structure & UI (In Progress)
 
 - **`main.dart`**: Configured the main `MaterialApp` with the dark, CDJ-inspired theme and set `Lato` as the default font.
-- **`HomePage.dart`**: Redesigned into a gear selection screen. The main "screen" area now lists all DJ gear models, grouped by category. The user must select a model before the "SCAN" button becomes active.
+- **`HomePage.dart`**: The main screen has been refactored.
+    - The DJ gear selection is now a two-tiered dropdown system (category and then gear) to save space.
+    - The "CDJ Body" now contains the main "SCAN" button and a new "Support" section.
+    - The "Support" section has two distinct buttons: "Follow me on Instagram" and "Buy me a Coffee."
 - **`ResultsPage.dart`**: Updated to display a report tailored to the selected model. The title now dynamically shows which gear the report is for (e.g., "Report for XDJ-XZ").
 
 ### Step 4: Core Logic (Completed)
@@ -59,10 +62,9 @@ This document outlines the plan for creating a Flutter application that scans US
 - The app-wide font has been changed to `Lato` for a cleaner, more modern design.
 - The color scheme has been updated to the official Rekordbox palette.
 - Added a "By No-Mad" subtitle to the app title.
-- Added a support link with an Instagram icon.
 
 ---
 
 ## Final Result
 
-The application is now a powerful, model-specific USB compatibility checker with a highly immersive and intuitive CDJ-inspired interface. It empowers DJs to confidently prepare their USB drives for any gig by verifying compatibility against the exact equipment they will be using. The app also includes a small section for users to support the developer.
+The application is now a powerful, model-specific USB compatibility checker with a highly immersive and intuitive CDJ-inspired interface. It empowers DJs to confidently prepare their USB drives for any gig by verifying compatibility against the exact equipment they will be using. The app also includes a prominent section for users to support the developer.
