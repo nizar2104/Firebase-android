@@ -162,27 +162,6 @@ class _GearSelectionScreen extends StatelessWidget {
             ),
             items: djGearList,
             itemAsString: (DjGear gear) => gear.name,
-            dropdownDecoratorProps: DropDownDecoratorProps(
-              baseStyle: const TextStyle(color: Colors.white),
-              dropdownSearchDecoration: InputDecoration(
-                labelText: "Select your DJ Gear",
-                labelStyle: const TextStyle(color: Color(0xFFFFFF00)),
-                filled: true,
-                fillColor: const Color(0xFF1E1E1E),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide(color: Colors.grey.shade800),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide(color: Colors.grey.shade800),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: const BorderSide(color: Color(0xFFFFFF00)),
-                ),
-              ),
-            ),
             onChanged: (DjGear? gear) {
               scanProvider.selectGear(gear);
             },
