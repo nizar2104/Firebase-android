@@ -214,8 +214,8 @@ class _HardwareButtons extends StatelessWidget {
               height: 250,
             ),
             SizedBox(
-              width: 150,
-              height: 150,
+              width: 180,
+              height: 180,
               child: ElevatedButton(
                 onPressed: isGearSelected && !scanProvider.isLoading
                     ? () => scanProvider.selectAndScanDirectory()
