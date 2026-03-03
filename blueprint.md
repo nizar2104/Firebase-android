@@ -15,7 +15,11 @@ This document outlines the plan for creating a Flutter application that scans US
 
 ## Design and Style
 
-- **Theme**: A dark, CDJ-inspired theme with a black and dark gray color palette, accented with Pioneer DJ red and yellow.
+- **Theme**: A dark, CDJ-inspired theme using the official Rekordbox color palette for an authentic feel:
+    - **Primary/Error:** Red (`#FF0000`)
+    - **Accent:** Yellow (`#FFFF00`)
+    - **Success:** Green (`#00FF00`)
+    - **Warning:** Orange (`#FFA500`)
 - **Typography**: The app now uses the `Lato` font from `google_fonts` for a clean, modern, and highly readable sans-serif typeface across all text elements.
 - **Iconography**: Material icons are styled to match the theme and enhance usability.
 
@@ -52,6 +56,7 @@ This document outlines the plan for creating a Flutter application that scans US
 - The results are more precise, providing actionable feedback based on the user's specific hardware.
 - The main call-to-action button has been updated from "USB" to "SCAN" for clarity.
 - The app-wide font has been changed to `Lato` for a cleaner, more modern design.
+- The color scheme has been updated to the official Rekordbox palette.
 
 ---
 
