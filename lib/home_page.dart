@@ -12,7 +12,19 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('CDJ-3000 Simulator'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('CDJ-3000 Simulator'),
+            Text(
+              'By No-Mad',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade400,
+              ),
+            ),
+          ],
+        ),
         elevation: 0,
         backgroundColor: Colors.black,
       ),
@@ -38,7 +50,7 @@ class HomePage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFDF1F26)),
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF0000)),
                           ),
                           SizedBox(height: 20),
                           Text('Analyzing USB...',
@@ -119,7 +131,7 @@ class _GearSelectionScreen extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-              child: Text(category, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: const Color(0xFFF5B50A))),
+              child: Text(category, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: const Color(0xFFFFFF00))),
             ),
             ...gearInCategory.map((gear) => RadioListTile<DjGear>(
               title: Text(gear.name, style: const TextStyle(color: Colors.white)),
@@ -130,7 +142,7 @@ class _GearSelectionScreen extends StatelessWidget {
                   scanProvider.selectGear(value);
                 }
               },
-              activeColor: const Color(0xFFDF1F26),
+              activeColor: const Color(0xFFFF0000),
               controlAffinity: ListTileControlAffinity.trailing,
             )),
           ],
@@ -187,7 +199,7 @@ class _HardwareButtons extends StatelessWidget {
               ? () => scanProvider.selectAndScanDirectory()
               : null,
           style: ElevatedButton.styleFrom(
-            backgroundColor: isGearSelected ? const Color(0xFFF5B50A) : Colors.grey,
+            backgroundColor: isGearSelected ? const Color(0xFFFFFF00) : Colors.grey,
             shape: const CircleBorder(),
             padding: const EdgeInsets.all(32),
           ),
