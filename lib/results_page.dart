@@ -11,11 +11,12 @@ class ResultsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final scanProvider = Provider.of<ScanProvider>(context, listen: false);
     final results = scanProvider.results;
+    final selectedGear = scanProvider.selectedGear;
 
     return Scaffold(
       backgroundColor: Colors.black, // CDJ Screen Background
       appBar: AppBar(
-        title: Text('USB Analysis Report', style: GoogleFonts.orbitron()),
+        title: Text('Report for ${selectedGear?.name ?? "USB"}', style: GoogleFonts.orbitron()),
         backgroundColor: const Color(0xFF1E1E1E),
         automaticallyImplyLeading: false, // Remove back button
         actions: [
@@ -38,6 +39,11 @@ class ResultsPage extends StatelessWidget {
           final key = results.keys.elementAt(index);
           final value = results[key];
 
+          // Skip empty lists for a cleaner report
+          if (value is List && value.isEmpty) {
+            return const SizedBox.shrink();
+          }
+
           return _buildResultTile(context, key, value);
         },
       ),
@@ -49,20 +55,31 @@ class ResultsPage extends StatelessWidget {
     Color iconColor;
     Widget trailing = const SizedBox.shrink();
 
+    // Default to success
+    iconColor = Colors.green.shade400;
+    leadingIcon = Icon(Icons.check_circle, color: iconColor);
+
     if (key == 'File System Format') {
-      final isCompatible = value == 'FAT' || value == 'FAT32' || value == 'exFAT';
+      final isCompatible = !(value.toString().toLowerCase() == 'exfat' &&
+          !(Provider.of<ScanProvider>(context, listen: false).selectedGear?.hasExfatSupport ?? true));
       iconColor = isCompatible ? Colors.green.shade400 : Colors.red.shade400;
       leadingIcon = Icon(isCompatible ? Icons.check_circle : Icons.cancel, color: iconColor);
+    } else if (key == 'exFAT Not Supported') {
+        iconColor = Colors.red.shade400;
+        leadingIcon = Icon(Icons.cancel, color: iconColor);
+    } else if (key == 'FLAC Files Found (Not Supported)') {
+        iconColor = Colors.red.shade400;
+        leadingIcon = Icon(Icons.error, color: iconColor);
+        trailing = const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16);
+    } else if (key == 'Long File Names (>255 chars)' || key == 'Files with Special Characters') {
+        if (value is List && value.isNotEmpty) {
+            iconColor = Colors.orange.shade400;
+            leadingIcon = Icon(Icons.warning, color: iconColor);
+            trailing = const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16);
+        }
     } else if (value is bool) {
       iconColor = value ? Colors.green.shade400 : Colors.red.shade400;
       leadingIcon = Icon(value ? Icons.check_circle : Icons.cancel, color: iconColor);
-    } else if (value is List<String> && value.isNotEmpty) {
-      iconColor = Colors.orange.shade400;
-      leadingIcon = Icon(Icons.warning, color: iconColor);
-      trailing = const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16);
-    } else {
-      iconColor = Colors.green.shade400;
-      leadingIcon = Icon(Icons.check_circle, color: iconColor);
     }
 
     return Container(
@@ -76,7 +93,7 @@ class ResultsPage extends StatelessWidget {
           key,
           style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
         ),
-        subtitle: _buildSubtitle(value),
+        subtitle: _buildSubtitle(value, key),
         trailing: trailing,
         onTap: (value is List<String> && value.isNotEmpty)
             ? () => _showDetailsDialog(context, key, value)
@@ -85,12 +102,14 @@ class ResultsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSubtitle(dynamic value) {
+  Widget _buildSubtitle(dynamic value, String key) {
     String textToShow;
-    if (value is bool) {
+    if (key == 'exFAT Not Supported') {
+        textToShow = 'This gear does not support the exFAT file system.';
+    } else if (value is bool) {
       textToShow = value ? 'OK' : 'Not Found';
     } else if (value is List<String>) {
-      textToShow = value.isEmpty ? 'OK' : '${value.length} issue(s) found';
+      textToShow = '${value.length} issue(s) found';
     } else {
       textToShow = value.toString();
     }
