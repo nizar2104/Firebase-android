@@ -11,11 +11,12 @@ class ResultsPage extends StatelessWidget {
     final scanProvider = Provider.of<ScanProvider>(context, listen: false);
     final results = scanProvider.results;
     final selectedGear = scanProvider.selectedGear;
+    final gearName = selectedGear?.name ?? "USB";
 
     return Scaffold(
       backgroundColor: Colors.black, // CDJ Screen Background
       appBar: AppBar(
-        title: Text('Report for ${selectedGear?.name ?? "USB"}'), // Removed explicit font
+        title: Text('Report for $gearName'), // Removed explicit font
         backgroundColor: const Color(0xFF1E1E1E),
         automaticallyImplyLeading: false, // Remove back button
         actions: [
