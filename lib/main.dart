@@ -25,13 +25,14 @@ class MyApp extends StatelessWidget {
     final ThemeData darkTheme = ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      primaryColor: const Color(0xFFDF1F26), // Pioneer DJ Red
+      primaryColor: const Color(0xFFFF0000), // Rekordbox Red
       scaffoldBackgroundColor: const Color(0xFF121212), // Dark background
       colorScheme: const ColorScheme.dark(
-        primary: Color(0xFFDF1F26), // Red
-        secondary: Color(0xFFF5B50A), // Yellow
+        primary: Color(0xFFFF0000), // Rekordbox Red
+        secondary: Color(0xFFFFFF00), // Rekordbox Yellow
         surface: Color(0xFF1E1E1E),
         onSurface: Colors.white,
+        error: Color(0xFFFF0000), // Rekordbox Red for errors
       ),
       textTheme: textTheme.copyWith(
         displayLarge: textTheme.displayLarge?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
@@ -50,7 +51,7 @@ class MyApp extends StatelessWidget {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.black, // Button text color
-          backgroundColor: const Color(0xFFF5B50A), // Yellow
+          backgroundColor: const Color(0xFFFFFF00), // Rekordbox Yellow
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         ),
@@ -58,14 +59,17 @@ class MyApp extends StatelessWidget {
        radioTheme: RadioThemeData(
         fillColor: MaterialStateColor.resolveWith((states) {
           if (states.contains(MaterialState.selected)) {
-            return const Color(0xFFDF1F26); // Red when selected
+            return const Color(0xFFFF0000); // Rekordbox Red when selected
           }
           return Colors.grey; // Grey when not selected
         }),
       ),
       listTileTheme: const ListTileThemeData(
         iconColor: Colors.white,
-      )
+      ),
+      iconTheme: const IconThemeData(
+        color: Color(0xFF00FF00) // Rekordbox Green for success icons
+      ),
     );
 
     return MaterialApp(
