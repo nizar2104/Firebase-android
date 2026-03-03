@@ -12,6 +12,7 @@ This document outlines the plan for creating a Flutter application that scans US
 - **USB Drive Selection**: Allow the user to select the root of their USB drive by pressing a hardware-style "SCAN" button, which is enabled only after selecting a gear model.
 - **Model-Specific Compatibility Analysis**: Run a series of checks on the selected drive based on the limitations of the chosen DJ gear model (e.g., FLAC support, exFAT support).
 - **Detailed Report**: Display a clear, model-specific report of the findings on a simulated CDJ screen, indicating whether the drive is compatible and what issues were found.
+- **Support Link**: A non-intrusive link for users to support the developer via an Instagram page.
 
 ## Design and Style
 
@@ -21,14 +22,14 @@ This document outlines the plan for creating a Flutter application that scans US
     - **Success:** Green (`#00FF00`)
     - **Warning:** Orange (`#FFA500`)
 - **Typography**: The app now uses the `Lato` font from `google_fonts` for a clean, modern, and highly readable sans-serif typeface across all text elements.
-- **Iconography**: Material icons are styled to match the theme and enhance usability.
+- **Iconography**: Material and FontAwesome icons are styled to match the theme and enhance usability.
 
 ## Technical Plan
 
 ### Step 1: Initial Setup & Dependencies (Completed)
 
 - Create this `blueprint.md` file.
-- Add initial dependencies to `pubspec.yaml`: `provider`, `google_fonts`, `file_picker`, `permission_handler`.
+- Add initial dependencies to `pubspec.yaml`: `provider`, `google_fonts`, `file_picker`, `permission_handler`, `url_launcher`, `font_awesome_flutter`.
 
 ### Step 2: Data Model (Completed)
 
@@ -50,16 +51,18 @@ This document outlines the plan for creating a Flutter application that scans US
     - **Check 2: Audio Files**: The check now differentiates between standard audio files and FLAC files. It will raise a specific error if FLAC files are found and the selected gear's `hasFlacSupport` flag is `false`.
     - Other checks (PIONEER folder, file names, etc.) remain as they are broadly applicable.
 
-### Step 5: Iteration and Refinement (Completed)
+### Step 5: Iteration and Refinement (In Progress)
 
 - The application flow is now more robust and user-centric.
 - The results are more precise, providing actionable feedback based on the user's specific hardware.
 - The main call-to-action button has been updated from "USB" to "SCAN" for clarity.
 - The app-wide font has been changed to `Lato` for a cleaner, more modern design.
 - The color scheme has been updated to the official Rekordbox palette.
+- Added a "By No-Mad" subtitle to the app title.
+- Added a support link with an Instagram icon.
 
 ---
 
 ## Final Result
 
-The application is now a powerful, model-specific USB compatibility checker with a highly immersive and intuitive CDJ-inspired interface. It empowers DJs to confidently prepare their USB drives for any gig by verifying compatibility against the exact equipment they will be using.
+The application is now a powerful, model-specific USB compatibility checker with a highly immersive and intuitive CDJ-inspired interface. It empowers DJs to confidently prepare their USB drives for any gig by verifying compatibility against the exact equipment they will be using. The app also includes a small section for users to support the developer.
