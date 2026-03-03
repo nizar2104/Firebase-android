@@ -8,11 +8,11 @@ This document outlines the plan for creating a Flutter application that scans US
 ## Core Features
 
 - **CDJ-style UI**: A dark, immersive user interface that resembles the look and feel of a Pioneer CDJ, providing a familiar experience for DJs.
-- **DJ Gear Selection**: Before scanning, the user must select their specific DJ gear model from a comprehensive list using a space-saving dropdown menu.
-- **USB Drive Selection**: Allow the user to select the root of their USB drive by pressing a hardware-style "SCAN" button, which is enabled only after selecting a gear model.
+- **DJ Gear Selection**: Before scanning, the user must select their specific DJ gear model from a comprehensive list using a searchable dropdown menu.
+- **USB Drive Selection**: Allow the user to select the root of their USB drive by pressing a large, prominent "SCAN" button, which is enabled only after selecting a gear model.
 - **Model-Specific Compatibility Analysis**: Run a series of checks on the selected drive based on the limitations of the chosen DJ gear model (e.g., FLAC support, exFAT support).
 - **Detailed Report**: Display a clear, model-specific report of the findings on a simulated CDJ screen, indicating whether the drive is compatible and what issues were found.
-- **Support Section**: A dedicated section with buttons for users to support the developer by following on Instagram or making a donation.
+- **Support Section**: A dedicated, visually distinct section with buttons for users to support the developer by following on Instagram or making a donation.
 
 ## Design and Style
 
@@ -29,7 +29,7 @@ This document outlines the plan for creating a Flutter application that scans US
 ### Step 1: Initial Setup & Dependencies (Completed)
 
 - Create this `blueprint.md` file.
-- Add initial dependencies to `pubspec.yaml`: `provider`, `google_fonts`, `file_picker`, `permission_handler`, `url_launcher`, `font_awesome_flutter`.
+- Add initial dependencies to `pubspec.yaml`: `provider`, `google_fonts`, `file_picker`, `permission_handler`, `url_launcher`, `font_awesome_flutter`, `dropdown_search`.
 
 ### Step 2: Data Model (Completed)
 
@@ -39,9 +39,10 @@ This document outlines the plan for creating a Flutter application that scans US
 
 - **`main.dart`**: Configured the main `MaterialApp` with the dark, CDJ-inspired theme and set `Lato` as the default font.
 - **`HomePage.dart`**: The main screen has been refactored.
-    - The DJ gear selection is now a two-tiered dropdown system (category and then gear) to save space.
-    - The "CDJ Body" now contains the main "SCAN" button and a new "Support" section.
-    - The "Support" section has two distinct buttons: "Follow me on Instagram" and "Buy me a Coffee."
+    - The app title is now centered.
+    - The DJ gear selection is now a single, searchable dropdown menu for a streamlined user experience.
+    - The "SCAN" button is now larger, more prominent, and has a hardware-like feel with an elevation shadow.
+    - A visually distinct "Support" section has been created with a clear header and improved button designs.
 - **`ResultsPage.dart`**: Updated to display a report tailored to the selected model. The title now dynamically shows which gear the report is for (e.g., "Report for XDJ-XZ").
 
 ### Step 4: Core Logic (Completed)

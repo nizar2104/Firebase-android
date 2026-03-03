@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'scan_provider.dart';
 import 'results_page.dart';
 import 'models/dj_gear.dart';
@@ -15,9 +16,8 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('CDJ-3000 Simulator'),
+            const Text('CDJ-3000 Simulator', textAlign: TextAlign.center),
             Text(
               'By No-Mad',
               style: TextStyle(
@@ -27,6 +27,7 @@ class HomePage extends StatelessWidget {
             ),
           ],
         ),
+        centerTitle: true,
         elevation: 0,
         backgroundColor: Colors.black,
       ),
@@ -103,8 +104,8 @@ class HomePage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     const _HardwareButtons(),
-                    const SizedBox(height: 20),
-                    const _SupportLink(),
+                    const SizedBox(height: 30),
+                    const _SupportSection(),
                   ],
                 ),
               ),
@@ -116,80 +117,59 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class _GearSelectionScreen extends StatefulWidget {
-  const _GearSelectionScreen({super.key});
-
-  @override
-  State<_GearSelectionScreen> createState() => _GearSelectionScreenState();
-}
-
-class _GearSelectionScreenState extends State<_GearSelectionScreen> {
-  String? _selectedCategory;
+class _GearSelectionScreen extends StatelessWidget {
+  const _GearSelectionScreen();
 
   @override
   Widget build(BuildContext context) {
     final scanProvider = Provider.of<ScanProvider>(context);
-    final gearCategories = djGearList.map((e) => e.category).toSet().toList();
-    final gearInCategory = _selectedCategory == null
-        ? <DjGear>[]
-        : djGearList.where((gear) => gear.category == _selectedCategory).toList();
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(
+        Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          child: DropdownButton<String>(
-            value: _selectedCategory,
-            hint: const Text('Select a category', style: TextStyle(color: Colors.white)),
-            isExpanded: true,
-            dropdownColor: const Color(0xFF1E1E1E),
-            underline: const SizedBox(),
-            onChanged: (String? value) {
-              setState(() {
-                _selectedCategory = value;
-                scanProvider.selectGear(null);
-              });
+          child: DropdownSearch<DjGear>(
+            popupProps: PopupProps.menu(
+              showSearchBox: true,
+              searchFieldProps: TextFieldProps(
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: "Search for your gear...",
+                  hintStyle: TextStyle(color: Colors.grey.shade600),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey.shade800),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFFFFFF00)),
+                  ),
+                ),
+              ),
+              menuProps: const MenuProps(
+                backgroundColor: Color(0xFF1E1E1E),
+              ),
+            ),
+            items: djGearList,
+            itemAsString: (DjGear gear) => gear.name,
+            dropdownDecoratorProps: DropDownDecoratorProps(
+              baseStyle: const TextStyle(color: Colors.white),
+              dropdownSearchDecoration: InputDecoration(
+                labelText: "Select your DJ Gear",
+                labelStyle: const TextStyle(color: Color(0xFFFFFF00)),
+                filled: true,
+                fillColor: const Color(0xFF1E1E1E),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide(color: Colors.grey.shade800),
+                ),
+              ),
+            ),
+            onChanged: (DjGear? gear) {
+              scanProvider.selectGear(gear);
             },
-            items: gearCategories.map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value, style: const TextStyle(color: Colors.white)),
-              );
-            }).toList(),
+            selectedItem: scanProvider.selectedGear,
           ),
         ),
-        const SizedBox(height: 20),
-        if (_selectedCategory != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: DropdownButton<DjGear>(
-              value: scanProvider.selectedGear,
-              hint: const Text('Select a gear', style: TextStyle(color: Colors.white)),
-              isExpanded: true,
-              dropdownColor: const Color(0xFF1E1E1E),
-              underline: const SizedBox(),
-              onChanged: (DjGear? value) {
-                if (value != null) {
-                  scanProvider.selectGear(value);
-                }
-              },
-              items: gearInCategory.map<DropdownMenuItem<DjGear>>((DjGear value) {
-                return DropdownMenuItem<DjGear>(
-                  value: value,
-                  child: Text(value.name, style: const TextStyle(color: Colors.white)),
-                );
-              }).toList(),
-            ),
-          ),
       ],
     );
   }
@@ -203,20 +183,26 @@ class _HardwareButtons extends StatelessWidget {
     return Consumer<ScanProvider>(
       builder: (context, scanProvider, child) {
         final isGearSelected = scanProvider.selectedGear != null;
-        return ElevatedButton(
-          onPressed: isGearSelected && !scanProvider.isLoading
-              ? () => scanProvider.selectAndScanDirectory()
-              : null,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: isGearSelected ? const Color(0xFFFFFF00) : Colors.grey,
-            shape: const CircleBorder(),
-            padding: const EdgeInsets.all(32),
-          ),
-          child: const Text('SCAN',
-            style: TextStyle(
-              color: Colors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
+        return SizedBox(
+          width: 150,
+          height: 150,
+          child: ElevatedButton(
+            onPressed: isGearSelected && !scanProvider.isLoading
+                ? () => scanProvider.selectAndScanDirectory()
+                : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isGearSelected ? const Color(0xFFFFFF00) : Colors.grey.shade800,
+              foregroundColor: Colors.black,
+              shape: const CircleBorder(),
+              elevation: 8,
+              shadowColor: isGearSelected ? const Color(0xFFFFFF00).withOpacity(0.5) : Colors.transparent,
+            ),
+            child: const Text(
+              'SCAN',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 36,
+              ),
             ),
           ),
         );
@@ -225,8 +211,8 @@ class _HardwareButtons extends StatelessWidget {
   }
 }
 
-class _SupportLink extends StatelessWidget {
-  const _SupportLink({super.key});
+class _SupportSection extends StatelessWidget {
+  const _SupportSection();
 
   void _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
@@ -237,41 +223,56 @@ class _SupportLink extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const Text(
-          'Liked this tool? Support me here:',
-          style: TextStyle(color: Colors.grey, fontSize: 14),
+    return Container(
+        padding: const EdgeInsets.all(16.0),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(8.0),
+          border: Border.all(color: Colors.grey.shade800)
         ),
-        const SizedBox(height: 20),
-        ElevatedButton.icon(
-          onPressed: () => _launchURL('https://www.instagram.com/no.mad.dj_/'),
-          icon: const FaIcon(FontAwesomeIcons.instagram, color: Colors.white),
-          label: const Text('Follow me on Instagram'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFE1306C),
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
+        child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'SUPPORT THE PROJECT',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Color(0xFFFFFF00),
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              letterSpacing: 1.2,
             ),
-            padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
           ),
-        ),
-        const SizedBox(height: 10),
-        ElevatedButton.icon(
-          onPressed: () => _launchURL('https://buymeacoffee.com/baklavaproject'),
-          icon: const FaIcon(FontAwesomeIcons.coffee, color: Colors.white),
-          label: const Text('Buy me a Coffee'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFFDD00),
-            foregroundColor: Colors.black,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
+          const SizedBox(height: 20),
+          ElevatedButton.icon(
+            onPressed: () => _launchURL('https://www.instagram.com/no.mad.dj_/'),
+            icon: const FaIcon(FontAwesomeIcons.instagram, color: Colors.white),
+            label: const Text('Follow on Instagram'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE1306C),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 12.0),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
             ),
-            padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
           ),
-        ),
-      ],
+          const SizedBox(height: 10),
+          ElevatedButton.icon(
+            onPressed: () => _launchURL('https://buymeacoffee.com/baklavaproject'),
+            icon: const FaIcon(FontAwesomeIcons.coffee, color: Colors.black),
+            label: const Text('Buy me a Coffee'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFFDD00),
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(vertical: 12.0),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
