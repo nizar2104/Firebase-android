@@ -1,7 +1,8 @@
 
 import 'dart:io';
-import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
+import 'package:flutter/services.dart';
+import 'models/dj_gear.dart'; // Import the DjGear model
 
 const platform = MethodChannel('com.example.myapp/filesystem');
 
@@ -10,59 +11,85 @@ Future<String> getFileSystemType(String path) async {
     final String result = await platform.invokeMethod('getFileSystemType', {'path': path});
     return result;
   } on PlatformException catch (e) {
-    return "Failed to get file system type: '${e.message}'.";
+    return "Error: ${e.message}";
   }
 }
 
-Future<Map<String, dynamic>> checkCompatibility(String directoryPath) async {
-  final Map<String, dynamic> results = {};
-  List<String> longFileNames = [];
-  List<String> invalidCharFileNames = [];
-  bool hasAlbumArt = false;
+Future<Map<String, dynamic>> checkCompatibility(String directoryPath, DjGear selectedGear) async {
+  final results = <String, dynamic>{};
 
-  final pioneerDir = Directory(p.join(directoryPath, 'PIONEER'));
-  results['PIONEER folder exists'] = await pioneerDir.exists();
-
-  final String fileSystemType = await getFileSystemType(directoryPath);
-  results['File System Format'] = fileSystemType;
-
-  final audioFiles = <String>['.mp3', '.wav', '.aiff', '.flac'];
-  bool hasAudioFiles = false;
   final dir = Directory(directoryPath);
+  if (!await dir.exists()) {
+    results['Error'] = 'Directory not found.';
+    return results;
+  }
 
-  if (await dir.exists()) {
-    await for (final entity in dir.list(recursive: true, followLinks: false)) {
-      final fileName = p.basename(entity.path);
+  // Check 1: File System Format
+  final fileSystemType = await getFileSystemType(directoryPath);
+  results['File System Format'] = fileSystemType;
+  if (!selectedGear.hasExfatSupport && fileSystemType.toLowerCase() == 'exfat') {
+      results['exFAT Not Supported'] = true;
+  }
 
-      // Check for file name length
-      if (fileName.length > 255) {
-        longFileNames.add(fileName);
-      }
 
-      // Check for invalid characters
-      if (RegExp(r'[^a-zA-Z0-9._\-\s]').hasMatch(fileName)) {
-        invalidCharFileNames.add(fileName);
-      }
+  // Check 2: File & Folder Structure
+  bool pioneerFolderFound = false;
+  List<String> audioFiles = [];
+  List<String> flacFiles = []; // Specifically track FLAC files
 
-      if (entity is File) {
-        final extension = p.extension(entity.path).toLowerCase();
-        // Check for audio files
-        if (audioFiles.contains(extension)) {
-          hasAudioFiles = true;
-        }
-
-        // Check for album art
-        if (extension == '.jpg' || extension == '.png') {
-          hasAlbumArt = true;
-        }
+  await for (var entity in dir.list(recursive: true)) {
+    if (entity is Directory && p.basename(entity.path).toUpperCase() == 'PIONEER') {
+      pioneerFolderFound = true;
+    }
+    if (entity is File) {
+      final extension = p.extension(entity.path).toLowerCase();
+      if (['.mp3', '.wav', '.aiff'].contains(extension)) {
+        audioFiles.add(entity.path);
+      } else if (extension == '.flac') {
+        flacFiles.add(entity.path);
       }
     }
   }
+  results['PIONEER Folder Found'] = pioneerFolderFound;
+  results['Standard Audio Files Found'] = audioFiles.isNotEmpty;
 
-  results['Contains audio files'] = hasAudioFiles;
-  results['Has album art'] = hasAlbumArt;
-  results['Files with long names (> 255 chars)'] = longFileNames.isEmpty ? 'OK' : longFileNames;
-  results['Files with invalid characters'] = invalidCharFileNames.isEmpty ? 'OK' : invalidCharFileNames;
+  // Check for FLAC files and if the gear supports them
+  if (flacFiles.isNotEmpty) {
+      if (!selectedGear.hasFlacSupport) {
+          results['FLAC Files Found (Not Supported)'] = flacFiles;
+      } else {
+          results['FLAC Files Found (Supported)'] = flacFiles.length;
+      }
+  }
+
+  // Check 3: File Name Analysis
+  List<String> longFileNames = [];
+  List<String> specialCharFileNames = [];
+  final specialCharRegex = RegExp(r'[^a-zA-Z0-9._\-/]');
+
+  await for (var entity in dir.list(recursive: true)) {
+    final fileName = p.basename(entity.path);
+    if (fileName.length > 255) {
+      longFileNames.add(fileName);
+    }
+    if (specialCharRegex.hasMatch(fileName)) {
+      specialCharFileNames.add(fileName);
+    }
+  }
+  results['Long File Names (>255 chars)'] = longFileNames;
+  results['Files with Special Characters'] = specialCharFileNames;
+
+  // Check 4: Album Art
+  List<String> imageFiles = [];
+  await for (var entity in dir.list(recursive: true)) {
+    if (entity is File) {
+      final extension = p.extension(entity.path).toLowerCase();
+      if (['.jpg', '.jpeg', '.png'].contains(extension)) {
+        imageFiles.add(entity.path);
+      }
+    }
+  }
+  results['Potential Album Art Files'] = imageFiles;
 
   return results;
 }
