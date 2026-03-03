@@ -130,6 +130,13 @@ class _GearSelectionScreen extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: DropdownSearch<DjGear>(
+            asyncItems: (String filter) async {
+                final allGear = djGearList;
+                if (filter.isEmpty) {
+                    return allGear;
+                }
+                return allGear.where((gear) => gear.name.toLowerCase().contains(filter.toLowerCase())).toList();
+            },
             popupProps: PopupProps.menu(
               showSearchBox: true,
               searchFieldProps: TextFieldProps(
@@ -160,7 +167,6 @@ class _GearSelectionScreen extends StatelessWidget {
                 );
               },
             ),
-            items: djGearList,
             itemAsString: (DjGear gear) => gear.name,
             onChanged: (DjGear? gear) {
               scanProvider.selectGear(gear);
