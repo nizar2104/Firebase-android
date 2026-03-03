@@ -139,7 +139,7 @@ class _GearSelectionScreen extends StatelessWidget {
             },
             popupProps: PopupProps.menu(
               showSearchBox: true,
-              searchFieldProps: TextFieldProps(
+               searchFieldProps: TextFieldProps(
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: "Search for your gear...",
@@ -166,6 +166,27 @@ class _GearSelectionScreen extends StatelessWidget {
                   ),
                 );
               },
+            ),
+            dropdownDecoratorProps: DropDownDecoratorProps(
+              baseStyle: const TextStyle(color: Colors.white),
+              dropdownSearchDecoration: InputDecoration(
+                labelText: "Select your DJ Gear",
+                labelStyle: const TextStyle(color: Color(0xFFFFFF00)),
+                filled: true,
+                fillColor: const Color(0xFF1E1E1E),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide(color: Colors.grey.shade800),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide(color: Colors.grey.shade800),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: const BorderSide(color: Color(0xFFFFFF00)),
+                ),
+              ),
             ),
             itemAsString: (DjGear gear) => gear.name,
             onChanged: (DjGear? gear) {
