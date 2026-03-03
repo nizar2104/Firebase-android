@@ -203,7 +203,7 @@ class _GearSelectionScreenState extends State<_GearSelectionScreen> {
               isExpanded: true,
               dropdownColor: const Color(0xFF1E1E1E),
               underline: const SizedBox(),
-.onChanged(DjGear? value) {
+              onChanged: (DjGear? value) {
                 if (value != null) {
                   scanProvider.selectGear(value);
                 }
