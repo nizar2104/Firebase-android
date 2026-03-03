@@ -148,6 +148,17 @@ class _GearSelectionScreen extends StatelessWidget {
               menuProps: const MenuProps(
                 backgroundColor: Color(0xFF1E1E1E),
               ),
+              itemBuilder: (context, item, isSelected) {
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Text(
+                    item.name,
+                    style: TextStyle(
+                      color: isSelected ? const Color(0xFFFFFF00) : Colors.white,
+                    ),
+                  ),
+                );
+              },
             ),
             items: djGearList,
             itemAsString: (DjGear gear) => gear.name,
@@ -161,6 +172,14 @@ class _GearSelectionScreen extends StatelessWidget {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                   borderSide: BorderSide(color: Colors.grey.shade800),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: BorderSide(color: Colors.grey.shade800),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: const BorderSide(color: Color(0xFFFFFF00)),
                 ),
               ),
             ),
