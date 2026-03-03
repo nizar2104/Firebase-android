@@ -16,10 +16,8 @@ This document outlines the plan for creating a Flutter application that scans US
 ## Design and Style
 
 - **Theme**: A dark, CDJ-inspired theme with a black and dark gray color palette, accented with Pioneer DJ red and yellow.
-- **Typography**: `google_fonts` are used to match the digital look of DJ equipment displays:
-    - `Orbitron`: For titles and headers.
-    - `Roboto`: For body text.
-- **Iconography**: Material icons are styled to aTnd enhance usability.
+- **Typography**: The app now uses the `Lato` font from `google_fonts` for a clean, modern, and highly readable sans-serif typeface across all text elements.
+- **Iconography**: Material icons are styled to match the theme and enhance usability.
 
 ## Technical Plan
 
@@ -34,7 +32,7 @@ This document outlines the plan for creating a Flutter application that scans US
 
 ### Step 3: Application Structure & UI (Completed)
 
-- **`main.dart`**: Configured the main `MaterialApp` with the dark, CDJ-inspired theme.
+- **`main.dart`**: Configured the main `MaterialApp` with the dark, CDJ-inspired theme and set `Lato` as the default font.
 - **`HomePage.dart`**: Redesigned into a gear selection screen. The main "screen" area now lists all DJ gear models, grouped by category. The user must select a model before the "SCAN" button becomes active.
 - **`ResultsPage.dart`**: Updated to display a report tailored to the selected model. The title now dynamically shows which gear the report is for (e.g., "Report for XDJ-XZ").
 
@@ -51,9 +49,9 @@ This document outlines the plan for creating a Flutter application that scans US
 ### Step 5: Iteration and Refinement (Completed)
 
 - The application flow is now more robust and user-centric.
-- The user is guided to first select their gear, ensuring the subsequent analysis is relevant.
 - The results are more precise, providing actionable feedback based on the user's specific hardware.
 - The main call-to-action button has been updated from "USB" to "SCAN" for clarity.
+- The app-wide font has been changed to `Lato` for a cleaner, more modern design.
 
 ---
 

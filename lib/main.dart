@@ -19,7 +19,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Define the dark theme inspired by CDJ equipment
+    final baseTheme = ThemeData.dark();
+    final textTheme = GoogleFonts.latoTextTheme(baseTheme.textTheme);
+
     final ThemeData darkTheme = ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
@@ -31,33 +33,16 @@ class MyApp extends StatelessWidget {
         surface: Color(0xFF1E1E1E),
         onSurface: Colors.white,
       ),
-      textTheme: GoogleFonts.robotoTextTheme(
-        ThemeData.dark().textTheme,
-      ).copyWith(
-        displayLarge: GoogleFonts.orbitron(
-          fontWeight: FontWeight.bold,
-          fontSize: 36,
-          color: Colors.white,
-        ),
-        titleLarge: GoogleFonts.orbitron(
-          fontWeight: FontWeight.w500,
-          fontSize: 22,
-          color: Colors.white,
-        ),
-        bodyMedium: GoogleFonts.roboto(
-          fontSize: 14,
-          color: Colors.white,
-        ),
-        labelLarge: GoogleFonts.roboto(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.black
-        )
+      textTheme: textTheme.copyWith(
+        displayLarge: textTheme.displayLarge?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+        titleLarge: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w500, color: Colors.white),
+        bodyMedium: textTheme.bodyMedium?.copyWith(color: Colors.white70),
+        labelLarge: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.bold, color: Colors.black),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: const Color(0xFF1E1E1E),
         foregroundColor: Colors.white,
-        titleTextStyle: GoogleFonts.orbitron(
+        titleTextStyle: GoogleFonts.lato(
           fontSize: 24,
           fontWeight: FontWeight.bold,
         ),
@@ -70,6 +55,17 @@ class MyApp extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         ),
       ),
+       radioTheme: RadioThemeData(
+        fillColor: MaterialStateColor.resolveWith((states) {
+          if (states.contains(MaterialState.selected)) {
+            return const Color(0xFFDF1F26); // Red when selected
+          }
+          return Colors.grey; // Grey when not selected
+        }),
+      ),
+      listTileTheme: const ListTileThemeData(
+        iconColor: Colors.white,
+      )
     );
 
     return MaterialApp(

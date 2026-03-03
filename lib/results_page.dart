@@ -1,6 +1,5 @@
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'scan_provider.dart';
 
@@ -16,7 +15,7 @@ class ResultsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black, // CDJ Screen Background
       appBar: AppBar(
-        title: Text('Report for ${selectedGear?.name ?? "USB"}', style: GoogleFonts.orbitron()),
+        title: Text('Report for ${selectedGear?.name ?? "USB"}'), // Removed explicit font
         backgroundColor: const Color(0xFF1E1E1E),
         automaticallyImplyLeading: false, // Remove back button
         actions: [
@@ -127,7 +126,7 @@ class ResultsPage extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E1E),
-        title: Text(title, style: GoogleFonts.orbitron(color: Colors.white)),
+        title: Text(title), // Removed explicit font
         content: SizedBox(
           width: double.maxFinite,
           child: ListView.builder(
