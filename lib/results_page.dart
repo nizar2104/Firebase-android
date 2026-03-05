@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'scan_provider.dart';
@@ -9,104 +8,98 @@ class ResultsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scanProvider = Provider.of<ScanProvider>(context, listen: false);
+    final scanProvider = Provider.of<ScanProvider>(context);
     final CompatibilityResult? results = scanProvider.results;
-    final gearName = scanProvider.selectedGear?.name ?? "USB";
 
-    // Combine all result messages into a single list for the ListView
+    if (results == null) {
+      return const Center(
+        child: Text(
+          'WAITING FOR USB...',
+          style: TextStyle(color: Colors.white, fontFamily: 'Courier New'),
+        ),
+      );
+    }
+
     final allMessages = [
-      ...results?.successes ?? [],
-      ...results?.warnings ?? [],
-      ...results?.errors ?? [],
+      ...results.successes,
+      ...results.warnings,
+      ...results.errors,
     ];
 
-    return Scaffold(
-      backgroundColor: Colors.black, // CDJ Screen Background
-      appBar: AppBar(
-        title: Text('Report for $gearName'),
-        backgroundColor: const Color(0xFF1E1E1E),
-        automaticallyImplyLeading: false, 
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'BACK',
-              style: TextStyle(
-                color: Color(0xFFFFFF00), 
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
+    return Container(
+      margin: const EdgeInsets.only(top: 30),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.black,
+        border: Border.all(color: const Color(0xFF333333), width: 4),
+      ),
+      child: Column(
+        children: [
+          ...allMessages.map((message) => _buildResultRow(message)).toList(),
+          _buildFooter(context, results),
         ],
       ),
-      body: results == null
-          ? const Center(child: Text("No scan results found.", style: TextStyle(color: Colors.white)))
-          : Column(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16.0),
-                    itemCount: allMessages.length,
-                    itemBuilder: (context, index) {
-                      return _buildResultRow(context, allMessages[index]);
-                    },
-                  ),
-                ),
-                _buildFooter(context, results),
-              ],
-            ),
     );
   }
 
-  Widget _buildResultRow(BuildContext context, String message) {
+  Widget _buildResultRow(String message) {
     final parts = message.split('\n');
     final title = parts.isNotEmpty ? parts[0] : '';
-    final subtitle = parts.length > 1 ? parts[1] : '';
+    final meta = parts.length > 1 ? parts[1] : '';
 
-    IconData iconData = Icons.help;
+    String icon = ' ';
     Color iconColor = Colors.grey;
+    String cleanTitle = title;
 
     if (title.startsWith('✅')) {
-      iconData = Icons.check_circle;
-      iconColor = const Color(0xFF00FF00); // Green
-    } else if (title.startsWith('🎵')) {
-      iconData = Icons.music_note;
-      iconColor = const Color(0xFF00FF00); // Green
-    } else if (title.startsWith('💾')) {
-      iconData = Icons.storage;
-      iconColor = title.contains("MODERN") ? const Color(0xFF00FF00) : const Color(0xFFFFA500); // Green or Orange
+      icon = '✅';
+      iconColor = const Color(0xFF00ff00);
+      cleanTitle = title.substring(2);
     } else if (title.startsWith('❌')) {
-      iconData = Icons.cancel;
-      iconColor = const Color(0xFFFF0000); // Red
+      icon = '❌';
+      iconColor = const Color(0xffff0044);
+      cleanTitle = title.substring(2);
     } else if (title.startsWith('⚠️')) {
-      iconData = Icons.warning;
-      iconColor = const Color(0xFFFFA500); // Orange
+      icon = '⚠️';
+      iconColor = const Color(0xffffcc00);
+      cleanTitle = title.substring(2);
+    } else if (title.startsWith('🎵')) {
+      icon = '🎵';
+      iconColor = const Color(0xFF00ff00);
+      cleanTitle = title.substring(2);
+    } else if (title.startsWith('💾')) {
+      icon = '💾';
+      iconColor = title.contains('MODERN') ? const Color(0xFF00ff00) : const Color(0xffffcc00);
+      cleanTitle = title.substring(2);
     }
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      padding: const EdgeInsets.all(12.0),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade800, width: 1),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         children: [
-          Icon(iconData, color: iconColor, size: 36),
-          const SizedBox(width: 16),
+          Text(icon, style: TextStyle(fontSize: 24, color: iconColor)),
+          const SizedBox(width: 15),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title.substring(2), // Remove icon from text
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16),
+                  cleanTitle,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 17.6, // 1.1rem
+                    color: Colors.white,
+                    fontFamily: 'Courier New',
+                  ),
                 ),
-                if (subtitle.isNotEmpty)
+                if (meta.isNotEmpty)
                   Text(
-                    subtitle,
-                    style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                    meta,
+                    style: const TextStyle(
+                      fontSize: 12.8, // 0.8rem
+                      color: Color(0xFF666666),
+                      fontFamily: 'Courier New',
+                    ),
                   ),
               ],
             ),
@@ -117,46 +110,73 @@ class ResultsPage extends StatelessWidget {
   }
 
   Widget _buildFooter(BuildContext context, CompatibilityResult results) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16.0),
-      margin: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: results.isReady ? const Color(0xFF00FF00) : const Color(0xFFFF0000),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            results.isReady ? 'READY FOR GIG 🚀' : 'ISSUES DETECTED:',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18, 
-              fontWeight: FontWeight.bold,
-              color: results.isReady ? const Color(0xFF00FF00) : const Color(0xFFFF0000),
+    final scanProvider = Provider.of<ScanProvider>(context, listen: false);
+    final gear = scanProvider.selectedGear;
+    final issues = [...results.errors, ...results.warnings];
+
+    return Column(
+      children: [
+        if (issues.isNotEmpty)
+          Container(
+            margin: const EdgeInsets.only(top: 15),
+            padding: const EdgeInsets.only(top: 10),
+            decoration: const BoxDecoration(
+              border: Border(top: BorderSide(color: Color(0xFF333333))),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'ISSUES DETECTED:',
+                  style: TextStyle(
+                    color: Color(0xffffcc00),
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Courier New',
+                  ),
+                ),
+                const SizedBox(height: 5),
+                ...issues.map((e) => Text(
+                  '• ${e.split('\n').first.substring(2)}',
+                  style: const TextStyle(color: Color(0xffffcc00), fontFamily: 'Courier New'),
+                )),
+              ],
             ),
           ),
-          if (!results.isReady)
-            ...' '.split(' ').map((e) => Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    e.startsWith('❌') || e.startsWith('⚠️') ? e.substring(2) : e,
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
+        if (issues.isEmpty)
+            Container(
+              margin: const EdgeInsets.only(top: 20),
+               decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: Color(0xFF333333))),
+              ),
+              padding: const EdgeInsets.only(top:15),
+              child: const Center(
+                child: Text(
+                  'READY FOR GIG 🚀',
+                  style: TextStyle(
+                    color: Color(0xFF00ff00),
+                    fontSize: 19.2, // 1.2rem
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Courier New',
                   ),
-                )),
-          const SizedBox(height: 16),
-          Text(
-            results.manualCheckMessage,
-            style: TextStyle(color: Colors.grey.shade500, fontStyle: FontStyle.italic, fontSize: 12),
+                ),
+              ),
+            ),
+        Container(
+          margin: const EdgeInsets.only(top: 20),
+          padding: const EdgeInsets.only(top: 10),
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: Color(0xFF333333))),
           ),
-        ],
-      ),
+          child: Text(
+            '*NOTE: Browsers cannot detect if your USB is FAT32 or NTFS.\nIf using ${gear?.name}, please manually verify your USB is ${gear?.hasExfatSupport == true ? 'exFAT or FAT32' : 'FAT32'}.',
+            style: const TextStyle(
+              color: Color(0xFF666666),
+              fontSize: 11.2, // 0.7rem
+              fontFamily: 'Courier New',
+            ),
+          ),
+        ),
+      ],
     );
   }
-
 }
