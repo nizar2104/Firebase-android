@@ -64,12 +64,15 @@ class HomePage extends StatelessWidget {
                         ],
                       ),
                     );
-                  } else if (scanProvider.results.isNotEmpty) {
-                    Future.microtask(() => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const ResultsPage()),
-                        ).then((_) => scanProvider.results.clear()));
+                  } else if (scanProvider.results != null) { // Check if results are available
+                    // Use a post-frame callback to navigate after the build is complete
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const ResultsPage()),
+                      );
+                    });
 
                     return const Center(
                       child: Text('Scan complete. Loading results...',
@@ -167,7 +170,7 @@ class _GearSelectionScreenState extends State<_GearSelectionScreen> {
         const SizedBox(height: 20),
         if (_selectedCategory != null)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(horizontal:  in 16.0),
             decoration: BoxDecoration(
               color: const Color(0xFF1E1E1E),
               borderRadius: BorderRadius.circular(8.0),
