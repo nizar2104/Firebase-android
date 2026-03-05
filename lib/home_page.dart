@@ -1,8 +1,6 @@
-'''
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:ui';
 
 import 'scan_provider.dart';
@@ -110,8 +108,8 @@ class _ContentBody extends StatelessWidget {
 
         // Result Screen or Loading state
         if (scanProvider.isLoading)
-          const _LoadingScreen(),
-        if (scanProvider.results != null)
+          const _LoadingScreen()
+        else if (scanProvider.results != null)
           const ResultsPage(), // Display results directly
 
         const SizedBox(height: 30),
@@ -127,10 +125,10 @@ class _GearSelectionDropdown extends StatefulWidget {
   const _GearSelectionDropdown();
 
   @override
-  __GearSelectionDropdownState createState() => __GearSelectionDropdownState();
+  _GearSelectionDropdownState createState() => _GearSelectionDropdownState();
 }
 
-class __GearSelectionDropdownState extends State<_GearSelectionDropdown> {
+class _GearSelectionDropdownState extends State<_GearSelectionDropdown> {
   
   List<DropdownMenuItem<DjGear>> _buildDropdownItems() {
     final List<DropdownMenuItem<DjGear>> items = [];
@@ -342,4 +340,3 @@ class _SocialBox extends StatelessWidget {
     );
   }
 }
-''
