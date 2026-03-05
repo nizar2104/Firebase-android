@@ -1,10 +1,9 @@
-
 import 'dart:io';
 import 'package:path/path.dart' as p;
-import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'models/dj_gear.dart';
+import 'mock_file_system.dart';
 
-// New result class to structure the output
 class CompatibilityResult {
   final bool isReady;
   final List<String> errors;
@@ -23,96 +22,58 @@ class CompatibilityResult {
   });
 }
 
-const platform = MethodChannel('com.example.myapp/filesystem');
-
-Future<String> getFileSystemType(String path) async {
-  try {
-    final String result = await platform.invokeMethod('getFileSystemType', {'path': path});
-    return result;
-  } on PlatformException {
-    // Return "Unknown" on error and let the manual check message guide the user.
-    return "Unknown";
-  }
-}
-
 Future<CompatibilityResult> checkCompatibility(String directoryPath, DjGear selectedGear) async {
-  final dir = Directory(directoryPath);
-  if (!await dir.exists()) {
-    return CompatibilityResult(errors: ['Directory not found.']);
-  }
+  // In a real app, you would use actual file system access.
+  // For this web-based simulator, we use a mock file system.
+  final mockFileSystem = getMockFileSystemForScenario(directoryPath);
 
-  // 1. ANALYSIS VARIABLES
-  bool hasPioneerFolder = false;
+  bool hasPioneerFolder = mockFileSystem.any((path) => path.toLowerCase().contains('/pioneer/'));
   int trackCount = 0;
-  List<String> flacErrors = [];
-  List<String> successMessages = [];
-  List<String> warningMessages = [];
-  List<String> errorMessages = [];
+  List<String> unsupportedFiles = [];
 
-  // 2. SCANNING LOGIC
-  try {
-    final entities = await dir.list(recursive: true).toList();
-    for (var entity in entities) {
-      final path = entity.path;
-      final name = p.basename(path).toLowerCase();
-
-      if (entity is Directory && (name.toUpperCase() == 'PIONEER' || name.toUpperCase() == '.PIONEER')) {
-        hasPioneerFolder = true;
-      }
-
-      if (entity is File) {
-        final extension = p.extension(name);
-        if (['.mp3', '.wav', '.aiff', '.m4a', '.flac'].contains(extension)) {
-          trackCount++;
-        }
-        
-        if (extension == '.flac' && !selectedGear.hasFlacSupport) {
-          if (flacErrors.isEmpty) { // Add error only once
-            flacErrors.add("Found FLAC files. ${selectedGear.name} does not support FLAC.");
-          }
-        }
+  for (var path in mockFileSystem) {
+    final extension = p.extension(path).toLowerCase();
+    if (['.mp3', '.wav', '.aiff', '.m4a', '.flac'].contains(extension)) {
+      trackCount++;
+      if (extension == '.flac' && !selectedGear.hasFlacSupport) {
+        unsupportedFiles.add(p.basename(path));
       }
     }
-  } catch (e) {
-    return CompatibilityResult(errors: ['Failed to read directory contents. Check permissions.']);
   }
 
-  // 3. GENERATE REPORT
-  
-  // CHECK 1: Database
+  List<String> errors = [];
+  List<String> warnings = [];
+  List<String> successes = [];
+
+  // Database Check
   if (hasPioneerFolder) {
-    successMessages.add("✅ REKORDBOX DATABASE\nReady to load cues & grids.");
+    successes.add('✅ REKORDBOX DATABASE\nReady to load cues & grids');
   } else {
-    errorMessages.add("❌ NO DATABASE FOUND\nUSB will be slow / No Cues. Did you export from Rekordbox?");
+    errors.add('❌ NO DATABASE FOUND\nUSB will be slow / No Cues');
   }
 
-  // CHECK 2: Tracks (FLAC)
-  if (flacErrors.isNotEmpty) {
-    errorMessages.addAll(flacErrors);
+  // File Type Check
+  if (unsupportedFiles.isNotEmpty) {
+    errors.add('⚠️ UNSUPPORTED FILES\nFound ${unsupportedFiles.length} files ${selectedGear.name} cannot play: ${unsupportedFiles.join(', ')}');
   } else {
-    successMessages.add("🎵 $trackCount TRACKS VALIDATED\nAudio formats are compatible.");
-  }
-  
-  // CHECK 3: File System
-  String manualCheck = "";
-  if (!selectedGear.hasExfatSupport) {
-    // For older gear that needs FAT32
-    warningMessages.add("💾 FORMAT CHECK REQUIRED\nEnsure drive is FAT32 (Not exFAT).");
-    manualCheck = "NOTE: Browsers cannot detect the USB format. For ${selectedGear.name}, please manually verify your USB is FAT32.";
-  } else {
-    // For modern gear
-    successMessages.add("💾 MODERN FORMAT SUPPORT\n${selectedGear.name} reads exFAT & FAT32.");
-    manualCheck = "NOTE: Browsers cannot detect the USB format. For ${selectedGear.name}, please manually verify your USB is exFAT or FAT32.";
+    successes.add('🎵 $trackCount TRACKS VALIDATED\nAudio format compatible');
   }
 
-  final bool isSuccess = errorMessages.isEmpty;
+  // File System Format Check
+  if (selectedGear.hasExfatSupport) {
+    successes.add('💾 MODERN FORMAT SUPPORT\n${selectedGear.name} reads exFAT & FAT32');
+  } else {
+    warnings.add('💾 FORMAT CHECK REQUIRED\nEnsure drive is FAT32 (Not exFAT)');
+  }
+
+  String manualCheckMessage = '*NOTE: Browsers cannot detect if your USB is FAT32 or NTFS. If using ${selectedGear.name}, please manually verify your USB is ${selectedGear.hasExfatSupport ? 'exFAT or FAT32' : 'FAT32'}.';
 
   return CompatibilityResult(
-    isReady: isSuccess,
-    errors: errorMessages,
-    warnings: warningMessages,
-    successes: successMessages,
+    isReady: errors.isEmpty,
+    errors: errors,
+    warnings: warnings,
+    successes: successes,
     trackCount: trackCount,
-    manualCheckMessage: manualCheck,
+    manualCheckMessage: manualCheckMessage,
   );
 }
