@@ -170,7 +170,7 @@ class _GearSelectionScreenState extends State<_GearSelectionScreen> {
         const SizedBox(height: 20),
         if (_selectedCategory != null)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal:  in 16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             decoration: BoxDecoration(
               color: const Color(0xFF1E1E1E),
               borderRadius: BorderRadius.circular(8.0),
