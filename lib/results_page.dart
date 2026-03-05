@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'scan_provider.dart';
+import 'compatibility_checker.dart';
 
 class ResultsPage extends StatelessWidget {
   const ResultsPage({super.key});
@@ -9,147 +10,153 @@ class ResultsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scanProvider = Provider.of<ScanProvider>(context, listen: false);
-    final results = scanProvider.results;
-    final selectedGear = scanProvider.selectedGear;
-    final gearName = selectedGear?.name ?? "USB";
+    final CompatibilityResult? results = scanProvider.results;
+    final gearName = scanProvider.selectedGear?.name ?? "USB";
+
+    // Combine all result messages into a single list for the ListView
+    final allMessages = [
+      ...results?.successes ?? [],
+      ...results?.warnings ?? [],
+      ...results?.errors ?? [],
+    ];
 
     return Scaffold(
       backgroundColor: Colors.black, // CDJ Screen Background
       appBar: AppBar(
-        title: Text('Report for $gearName'), // Removed explicit font
+        title: Text('Report for $gearName'),
         backgroundColor: const Color(0xFF1E1E1E),
-        automaticallyImplyLeading: false, // Remove back button
+        automaticallyImplyLeading: false, 
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text(
               'BACK',
               style: TextStyle(
-                color: Color(0xFFFFFF00), // Rekordbox Yellow
+                color: Color(0xFFFFFF00), 
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
         ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16.0),
-        itemCount: results.length,
-        itemBuilder: (context, index) {
-          final key = results.keys.elementAt(index);
-          final value = results[key];
-
-          if (value is List && value.isEmpty) {
-            return const SizedBox.shrink();
-          }
-
-          return _buildResultTile(context, key, value);
-        },
-      ),
+      body: results == null
+          ? const Center(child: Text("No scan results found.", style: TextStyle(color: Colors.white)))
+          : Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: allMessages.length,
+                    itemBuilder: (context, index) {
+                      return _buildResultRow(context, allMessages[index]);
+                    },
+                  ),
+                ),
+                _buildFooter(context, results),
+              ],
+            ),
     );
   }
 
-  Widget _buildResultTile(BuildContext context, String key, dynamic value) {
-    Icon leadingIcon;
-    Color iconColor;
-    Widget trailing = const SizedBox.shrink();
+  Widget _buildResultRow(BuildContext context, String message) {
+    final parts = message.split('\n');
+    final title = parts.isNotEmpty ? parts[0] : '';
+    final subtitle = parts.length > 1 ? parts[1] : '';
 
-    // Default to success
-    iconColor = const Color(0xFF00FF00); // Rekordbox Green
-    leadingIcon = Icon(Icons.check_circle, color: iconColor);
+    IconData iconData = Icons.help;
+    Color iconColor = Colors.grey;
 
-    if (key == 'File System Format') {
-      final isCompatible = !(value.toString().toLowerCase() == 'exfat' &&
-          !(Provider.of<ScanProvider>(context, listen: false).selectedGear?.hasExfatSupport ?? true));
-      iconColor = isCompatible ? const Color(0xFF00FF00) : const Color(0xFFFF0000);
-      leadingIcon = Icon(isCompatible ? Icons.check_circle : Icons.cancel, color: iconColor);
-    } else if (key == 'exFAT Not Supported') {
-        iconColor = const Color(0xFFFF0000); // Rekordbox Red
-        leadingIcon = Icon(Icons.cancel, color: iconColor);
-    } else if (key == 'FLAC Files Found (Not Supported)') {
-        iconColor = const Color(0xFFFF0000); // Rekordbox Red
-        leadingIcon = Icon(Icons.error, color: iconColor);
-        trailing = const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16);
-    } else if (key == 'Long File Names (>255 chars)' || key == 'Files with Special Characters') {
-        if (value is List && value.isNotEmpty) {
-            iconColor = const Color(0xFFFFA500); // Rekordbox Orange
-            leadingIcon = Icon(Icons.warning, color: iconColor);
-            trailing = const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16);
-        }
-    } else if (value is bool) {
-      iconColor = value ? const Color(0xFF00FF00) : const Color(0xFFFF0000);
-      leadingIcon = Icon(value ? Icons.check_circle : Icons.cancel, color: iconColor);
+    if (title.startsWith('✅')) {
+      iconData = Icons.check_circle;
+      iconColor = const Color(0xFF00FF00); // Green
+    } else if (title.startsWith('🎵')) {
+      iconData = Icons.music_note;
+      iconColor = const Color(0xFF00FF00); // Green
+    } else if (title.startsWith('💾')) {
+      iconData = Icons.storage;
+      iconColor = title.contains("MODERN") ? const Color(0xFF00FF00) : const Color(0xFFFFA500); // Green or Orange
+    } else if (title.startsWith('❌')) {
+      iconData = Icons.cancel;
+      iconColor = const Color(0xFFFF0000); // Red
+    } else if (title.startsWith('⚠️')) {
+      iconData = Icons.warning;
+      iconColor = const Color(0xFFFFA500); // Orange
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4.0),
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(12.0),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: Colors.grey.shade800)),
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade800, width: 1),
       ),
-      child: ListTile(
-        leading: leadingIcon,
-        title: Text(
-          key,
-          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        subtitle: _buildSubtitle(value, key),
-        trailing: trailing,
-        onTap: (value is List<String> && value.isNotEmpty)
-            ? () => _showDetailsDialog(context, key, value)
-            : null,
-      ),
-    );
-  }
-
-  Widget _buildSubtitle(dynamic value, String key) {
-    String textToShow;
-    if (key == 'exFAT Not Supported') {
-        textToShow = 'This gear does not support the exFAT file system.';
-    } else if (value is bool) {
-      textToShow = value ? 'OK' : 'Not Found';
-    } else if (value is List<String>) {
-      textToShow = '${value.length} issue(s) found';
-    } else {
-      textToShow = value.toString();
-    }
-
-    return Text(
-      textToShow,
-      style: TextStyle(
-        color: Colors.grey.shade400,
-      ),
-    );
-  }
-
-  void _showDetailsDialog(BuildContext context, String title, List<String> items) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        title: Text(title), // Inherits font from theme
-        content: SizedBox(
-          width: double.maxFinite,
-          child: ListView.builder(
-            shrinkWrap: true,
-            itemCount: items.length,
-            itemBuilder: (context, index) => Text(
-              items[index],
-              style: const TextStyle(color: Colors.white70),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'CLOSE',
-              style: TextStyle(
-                color: Color(0xFFFFFF00), // Rekordbox Yellow
-              ),
+      child: Row(
+        children: [
+          Icon(iconData, color: iconColor, size: 36),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title.substring(2), // Remove icon from text
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16),
+                ),
+                if (subtitle.isNotEmpty)
+                  Text(
+                    subtitle,
+                    style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                  ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildFooter(BuildContext context, CompatibilityResult results) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16.0),
+      margin: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: results.isReady ? const Color(0xFF00FF00) : const Color(0xFFFF0000),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            results.isReady ? 'READY FOR GIG 🚀' : 'ISSUES DETECTED:',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18, 
+              fontWeight: FontWeight.bold,
+              color: results.isReady ? const Color(0xFF00FF00) : const Color(0xFFFF0000),
+            ),
+          ),
+          if (!results.isReady)
+            ...' '.split(' ').map((e) => Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    e.startsWith('❌') || e.startsWith('⚠️') ? e.substring(2) : e,
+                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                  ),
+                )),
+          const SizedBox(height: 16),
+          Text(
+            results.manualCheckMessage,
+            style: TextStyle(color: Colors.grey.shade500, fontStyle: FontStyle.italic, fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
