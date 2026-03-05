@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:file_picker/file_picker.dart';
 import 'models/dj_gear.dart';
@@ -7,7 +6,7 @@ import 'compatibility_checker.dart';
 class ScanProvider with ChangeNotifier {
   DjGear? _selectedGear;
   bool _isLoading = false;
-  CompatibilityResult? _results; // Use the new result class
+  CompatibilityResult? _results;
 
   DjGear? get selectedGear => _selectedGear;
   bool get isLoading => _isLoading;
@@ -15,10 +14,17 @@ class ScanProvider with ChangeNotifier {
 
   void selectGear(DjGear? gear) {
     _selectedGear = gear;
+    _results = null; // Clear results when gear changes
     notifyListeners();
   }
 
-  // Method for tests to inject mock results
+  void resetScan() {
+    _results = null;
+    _isLoading = false;
+    // Don't reset selected gear, user might want to scan again with the same gear
+    notifyListeners();
+  }
+  
   @visibleForTesting
   void setResults(CompatibilityResult results) {
     _results = results;
@@ -29,17 +35,20 @@ class ScanProvider with ChangeNotifier {
     if (_selectedGear == null) return;
 
     _isLoading = true;
-    _results = null; // Clear previous results
+    _results = null;
     notifyListeners();
 
     try {
-      String? selectedDirectory = await FilePicker.platform.getDirectoryPath();
+      // This will use a mock implementation on non-web platforms for testing
+      final String? directoryPath = await FilePicker.platform.getDirectoryPath();
 
-      if (selectedDirectory != null) {
-        _results = await checkCompatibility(selectedDirectory, _selectedGear!);
+      if (directoryPath != null) {
+        // In a real scenario, you'd get a list of files from the path.
+        // For this simulation, we pass the path to the checker which will use mock data.
+        _results = await checkCompatibility(directoryPath, _selectedGear!);
       } else {
         // User canceled the picker
-        _results = CompatibilityResult(warnings: ['Scan canceled.']);
+         _results = null; // Stay on the main screen
       }
     } catch (e) {
       _results = CompatibilityResult(errors: ['An unexpected error occurred: ${e.toString()}']);
