@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:myapp/main.dart';
 import 'package:myapp/models/dj_gear.dart';
 import 'package:myapp/scan_provider.dart';
-import 'package:flutter/material.dart';
 
 void main() {
   testWidgets('Scenario: No PIONEER folder and unsupported FLAC files', (WidgetTester tester) async {

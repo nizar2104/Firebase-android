@@ -35,7 +35,7 @@ class ResultsPage extends StatelessWidget {
       ),
       child: Column(
         children: [
-          ...allMessages.map((message) => _buildResultRow(message)).toList(),
+          ...allMessages.map((message) => _buildResultRow(message)),
           _buildFooter(context, results),
         ],
       ),

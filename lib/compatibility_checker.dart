@@ -1,6 +1,4 @@
-import 'dart:io';
 import 'package:path/path.dart' as p;
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'models/dj_gear.dart';
 import 'mock_file_system.dart';
 
