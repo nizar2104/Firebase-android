@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -6,54 +5,49 @@ import 'package:myapp/main.dart';
 import 'package:myapp/models/dj_gear.dart';
 import 'package:myapp/scan_provider.dart';
 import 'package:myapp/compatibility_checker.dart';
+import 'package:myapp/home_page.dart';
+import 'package:mockito/mockito.dart';
+
+// Mocks
+class MockScanProvider extends Mock implements ScanProvider {}
 
 void main() {
-  // Test a fully compatible USB stick
-  testWidgets('Shows success for a fully compatible USB', (WidgetTester tester) async {
+  testWidgets('Happy Path - Full Compatibility', (WidgetTester tester) async {
     final scanProvider = ScanProvider();
-    
-    // Mock the results as if a compatible USB was scanned
-    scanProvider.setResults(CompatibilityResult(
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: scanProvider,
+        child: const MyApp(),
+      ),
+    );
+
+    // 1. Select Gear
+    scanProvider.selectGear(djGearList.firstWhere((g) => g.name == 'CDJ-3000'));
+    await tester.pump();
+
+    // 2. Mock the scan result
+    final successfulResult = CompatibilityResult(
       isReady: true,
       successes: [
-        "✅ REKORDBOX DATABASE\nReady to load cues & grids.",
-        "🎵 125 TRACKS VALIDATED\nAudio formats are compatible.",
-        "💾 MODERN FORMAT SUPPORT\nCDJ-3000 reads exFAT & FAT32.",
+        '✅ REKORDBOX DATABASE\nReady to load cues & grids',
+        '🎵 150 TRACKS VALIDATED\nAudio format compatible',
+        '💾 MODERN FORMAT SUPPORT\nCDJ-3000 reads exFAT & FAT32',
       ],
-      manualCheckMessage: "NOTE: Please manually verify your USB is exFAT or FAT32.",
-    ));
-
-    await tester.pumpWidget(
-      ChangeNotifierProvider.value(
-        value: scanProvider,
-        child: const MyApp(), // Assuming MyApp shows ResultsPage based on state
-      ),
+      manualCheckMessage: '*NOTE: Browsers cannot detect if your USB is FAT32 or NTFS. If using CDJ-3000, please manually verify your USB is exFAT or FAT32.',
     );
+    scanProvider.setResults(successfulResult);
+    await tester.pump(); 
 
-    // You'll need to navigate to the results page or have your app do it
-    // For this test, we assume the results are displayed directly
-
-    // FIND a better way to show the results page. Maybe a mock navigator?
-
-    // Since we are not navigating, we can't test the ResultsPage directly.
-    // A better approach would be to test the ResultsPage widget in isolation.
-
-    // Let's assume we can find the widgets if the results page was visible.
-    expect(find.text("READY FOR GIG 🚀"), findsOneWidget);
-    expect(find.textContaining("REKORDBOX DATABASE"), findsOneWidget);
-    expect(find.textContaining("125 TRACKS VALIDATED"), findsOneWidget);
+    // 3. Verify the Results UI
+    expect(find.text('READY FOR GIG 🚀'), findsOneWidget);
+    expect(find.textContaining('REKORDBOX DATABASE'), findsOneWidget);
+    expect(find.textContaining('150 TRACKS VALIDATED'), findsOneWidget);
+    expect(find.textContaining('MODERN FORMAT SUPPORT'), findsOneWidget);
   });
 
-  // Test a USB with FLAC files for a player that doesn't support it
-  testWidgets('Shows FLAC error for unsupported gear', (WidgetTester tester) async {
+  testWidgets('Error Path - FLAC Not Supported', (WidgetTester tester) async {
     final scanProvider = ScanProvider();
-    scanProvider.setResults(CompatibilityResult(
-      isReady: false,
-      errors: ["❌ Found FLAC files. CDJ-2000 Nexus does not support FLAC."],
-      successes: ["✅ REKORDBOX DATABASE\nReady to load cues & grids."],
-      warnings: ["💾 FORMAT CHECK REQUIRED\nEnsure drive is FAT32 (Not exFAT)."],
-      manualCheckMessage: "NOTE: Please manually verify your USB is FAT32.",
-    ));
 
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
@@ -62,19 +56,30 @@ void main() {
       ),
     );
 
-    expect(find.text("ISSUES DETECTED:"), findsOneWidget);
-    expect(find.textContaining("does not support FLAC"), findsOneWidget);
-    expect(find.textContaining("FORMAT CHECK REQUIRED"), findsOneWidget);
+    // 1. Select Gear that doesn't support FLAC
+    scanProvider.selectGear(djGearList.firstWhere((g) => g.name == 'CDJ-2000 Nexus (No FLAC)'));
+    await tester.pump();
+
+    // 2. Mock the scan result for FLAC error
+    final flacErrorResult = CompatibilityResult(
+      isReady: false,
+      errors: ['⚠️ UNSUPPORTED FILES\nCDJ-2000 Nexus (No FLAC) cannot play FLAC'],
+      successes: ['✅ REKORDBOX DATABASE\nReady to load cues & grids'],
+      warnings: ['💾 FORMAT CHECK REQUIRED\nEnsure drive is FAT32 (Not exFAT)'],
+      manualCheckMessage: '*NOTE: Browsers cannot detect if your USB is FAT32 or NTFS. If using CDJ-2000 Nexus (No FLAC), please manually verify your USB is FAT32.',
+    );
+    scanProvider.setResults(flacErrorResult);
+    await tester.pump();
+
+    // 3. Verify the Results UI
+    expect(find.text('ISSUES DETECTED:'), findsOneWidget);
+    expect(find.textContaining('UNSUPPORTED FILES'), findsOneWidget);
+    expect(find.textContaining('cannot play FLAC'), findsOneWidget);
+    expect(find.textContaining('FORMAT CHECK REQUIRED'), findsOneWidget);
   });
 
-  // Test a USB missing the PIONEER folder
-  testWidgets('Shows database error when PIONEER folder is missing', (WidgetTester tester) async {
+  testWidgets('Error Path - No Rekordbox Database', (WidgetTester tester) async {
     final scanProvider = ScanProvider();
-    scanProvider.setResults(CompatibilityResult(
-      isReady: false,
-      errors: ["❌ NO DATABASE FOUND\nUSB will be slow / No Cues. Did you export from Rekordbox?"],
-      manualCheckMessage: "Manually verify format.",
-    ));
 
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
@@ -83,7 +88,24 @@ void main() {
       ),
     );
 
-    expect(find.text("ISSUES DETECTED:"), findsOneWidget);
-    expect(find.textContaining("NO DATABASE FOUND"), findsOneWidget);
+    // 1. Select any gear
+    scanProvider.selectGear(djGearList.first);
+    await tester.pump();
+
+    // 2. Mock the scan result for missing database
+    final noDbResult = CompatibilityResult(
+      isReady: false,
+      errors: ['❌ NO DATABASE FOUND\nUSB will be slow / No Cues'],
+      successes: ['🎵 0 TRACKS VALIDATED\nAudio format compatible'],
+      warnings: ['💾 FORMAT CHECK REQUIRED\nEnsure drive is FAT32 (Not exFAT)'],
+       manualCheckMessage: '*NOTE: Browsers cannot detect if your USB is FAT32 or NTFS. If using ${djGearList.first.name}, please manually verify your USB is FAT32.',
+    );
+    scanProvider.setResults(noDbResult);
+    await tester.pump();
+
+    // 3. Verify the Results UI
+    expect(find.text('ISSUES DETECTED:'), findsOneWidget);
+    expect(find.textContaining('NO DATABASE FOUND'), findsOneWidget);
+    expect(find.textContaining('USB will be slow'), findsOneWidget);
   });
 }
