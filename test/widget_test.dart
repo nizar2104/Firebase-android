@@ -8,7 +8,6 @@ import 'package:network_image_mock/network_image_mock.dart';
 void main() {
   testWidgets('Scenario: No PIONEER folder and unsupported FLAC files', (WidgetTester tester) async {
     // Wrap the test in mockNetworkImagesFor to prevent network errors
-    mockNetworkImagesFor(() async {
     await mockNetworkImagesFor(() async {
       // 1. Initialize the app with the ScanProvider
       final scanProvider = ScanProvider();
