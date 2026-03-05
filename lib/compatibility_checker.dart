@@ -2,7 +2,26 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:flutter/services.dart';
-import 'models/dj_gear.dart'; // Import the DjGear model
+import 'models/dj_gear.dart';
+
+// New result class to structure the output
+class CompatibilityResult {
+  final bool isReady;
+  final List<String> errors;
+  final List<String> warnings;
+  final List<String> successes;
+  final int trackCount;
+  final String manualCheckMessage;
+
+  CompatibilityResult({
+    this.isReady = false,
+    this.errors = const [],
+    this.warnings = const [],
+    this.successes = const [],
+    this.trackCount = 0,
+    this.manualCheckMessage = "",
+  });
+}
 
 const platform = MethodChannel('com.example.myapp/filesystem');
 
@@ -10,86 +29,90 @@ Future<String> getFileSystemType(String path) async {
   try {
     final String result = await platform.invokeMethod('getFileSystemType', {'path': path});
     return result;
-  } on PlatformException catch (e) {
-    return "Error: ${e.message}";
+  } on PlatformException {
+    // Return "Unknown" on error and let the manual check message guide the user.
+    return "Unknown";
   }
 }
 
-Future<Map<String, dynamic>> checkCompatibility(String directoryPath, DjGear selectedGear) async {
-  final results = <String, dynamic>{};
-
+Future<CompatibilityResult> checkCompatibility(String directoryPath, DjGear selectedGear) async {
   final dir = Directory(directoryPath);
   if (!await dir.exists()) {
-    results['Error'] = 'Directory not found.';
-    return results;
+    return CompatibilityResult(errors: ['Directory not found.']);
   }
 
-  // Check 1: File System Format
-  final fileSystemType = await getFileSystemType(directoryPath);
-  results['File System Format'] = fileSystemType;
-  if (!selectedGear.hasExfatSupport && fileSystemType.toLowerCase() == 'exfat') {
-      results['exFAT Not Supported'] = true;
-  }
+  // 1. ANALYSIS VARIABLES
+  bool hasPioneerFolder = false;
+  int trackCount = 0;
+  List<String> flacErrors = [];
+  List<String> successMessages = [];
+  List<String> warningMessages = [];
+  List<String> errorMessages = [];
 
+  // 2. SCANNING LOGIC
+  try {
+    final entities = await dir.list(recursive: true).toList();
+    for (var entity in entities) {
+      final path = entity.path;
+      final name = p.basename(path).toLowerCase();
 
-  // Check 2: File & Folder Structure
-  bool pioneerFolderFound = false;
-  List<String> audioFiles = [];
-  List<String> flacFiles = []; // Specifically track FLAC files
+      if (entity is Directory && (name.toUpperCase() == 'PIONEER' || name.toUpperCase() == '.PIONEER')) {
+        hasPioneerFolder = true;
+      }
 
-  await for (var entity in dir.list(recursive: true)) {
-    if (entity is Directory && p.basename(entity.path).toUpperCase() == 'PIONEER') {
-      pioneerFolderFound = true;
-    }
-    if (entity is File) {
-      final extension = p.extension(entity.path).toLowerCase();
-      if (['.mp3', '.wav', '.aiff'].contains(extension)) {
-        audioFiles.add(entity.path);
-      } else if (extension == '.flac') {
-        flacFiles.add(entity.path);
+      if (entity is File) {
+        final extension = p.extension(name);
+        if (['.mp3', '.wav', '.aiff', '.m4a', '.flac'].contains(extension)) {
+          trackCount++;
+        }
+        
+        if (extension == '.flac' && !selectedGear.hasFlacSupport) {
+          if (flacErrors.isEmpty) { // Add error only once
+            flacErrors.add("Found FLAC files. ${selectedGear.name} does not support FLAC.");
+          }
+        }
       }
     }
-  }
-  results['PIONEER Folder Found'] = pioneerFolderFound;
-  results['Standard Audio Files Found'] = audioFiles.isNotEmpty;
-
-  // Check for FLAC files and if the gear supports them
-  if (flacFiles.isNotEmpty) {
-      if (!selectedGear.hasFlacSupport) {
-          results['FLAC Files Found (Not Supported)'] = flacFiles;
-      } else {
-          results['FLAC Files Found (Supported)'] = flacFiles.length;
-      }
+  } catch (e) {
+    return CompatibilityResult(errors: ['Failed to read directory contents. Check permissions.']);
   }
 
-  // Check 3: File Name Analysis
-  List<String> longFileNames = [];
-  List<String> specialCharFileNames = [];
-  final specialCharRegex = RegExp(r'[^a-zA-Z0-9._\-/]');
-
-  await for (var entity in dir.list(recursive: true)) {
-    final fileName = p.basename(entity.path);
-    if (fileName.length > 255) {
-      longFileNames.add(fileName);
-    }
-    if (specialCharRegex.hasMatch(fileName)) {
-      specialCharFileNames.add(fileName);
-    }
+  // 3. GENERATE REPORT
+  
+  // CHECK 1: Database
+  if (hasPioneerFolder) {
+    successMessages.add("✅ REKORDBOX DATABASE\nReady to load cues & grids.");
+  } else {
+    errorMessages.add("❌ NO DATABASE FOUND\nUSB will be slow / No Cues. Did you export from Rekordbox?");
   }
-  results['Long File Names (>255 chars)'] = longFileNames;
-  results['Files with Special Characters'] = specialCharFileNames;
 
-  // Check 4: Album Art
-  List<String> imageFiles = [];
-  await for (var entity in dir.list(recursive: true)) {
-    if (entity is File) {
-      final extension = p.extension(entity.path).toLowerCase();
-      if (['.jpg', '.jpeg', '.png'].contains(extension)) {
-        imageFiles.add(entity.path);
-      }
-    }
+  // CHECK 2: Tracks (FLAC)
+  if (flacErrors.isNotEmpty) {
+    errorMessages.addAll(flacErrors);
+  } else {
+    successMessages.add("🎵 $trackCount TRACKS VALIDATED\nAudio formats are compatible.");
   }
-  results['Potential Album Art Files'] = imageFiles;
+  
+  // CHECK 3: File System
+  String manualCheck = "";
+  if (!selectedGear.hasExfatSupport) {
+    // For older gear that needs FAT32
+    warningMessages.add("💾 FORMAT CHECK REQUIRED\nEnsure drive is FAT32 (Not exFAT).");
+    manualCheck = "NOTE: Browsers cannot detect the USB format. For ${selectedGear.name}, please manually verify your USB is FAT32.";
+  } else {
+    // For modern gear
+    successMessages.add("💾 MODERN FORMAT SUPPORT\n${selectedGear.name} reads exFAT & FAT32.");
+    manualCheck = "NOTE: Browsers cannot detect the USB format. For ${selectedGear.name}, please manually verify your USB is exFAT or FAT32.";
+  }
 
-  return results;
+  final bool isSuccess = errorMessages.isEmpty;
+
+  return CompatibilityResult(
+    isReady: isSuccess,
+    errors: errorMessages,
+    warnings: warningMessages,
+    successes: successMessages,
+    trackCount: trackCount,
+    manualCheckMessage: manualCheck,
+  );
 }
