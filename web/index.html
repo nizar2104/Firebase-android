@@ -1,38 +1,323 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CDJ Simulator | By No-Mad</title>
+    <style>
+        /* --- THE PIONEER THEME --- */
+        body {
+            /* Loading a CDJ background image */
+            background: url('https://images.unsplash.com/photo-1571266028243-371695039980?q=80&w=2070&auto=format&fit=crop') no-repeat center center fixed;
+            background-size: cover;
+            color: #eee;
+            font-family: 'Arial Narrow', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            position: relative;
+        }
 
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
+        /* Dark overlay so text is readable on top of the image */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: -1;
+        }
 
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+        .container {
+            width: 650px;
+            background: rgba(26, 26, 26, 0.95); /* Slight transparency */
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 50px rgba(0, 87, 231, 0.4);
+            border: 1px solid #333;
+            backdrop-filter: blur(5px);
+        }
 
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="$FLUTTER_BASE_HREF">
+        h1 { 
+            margin: 0; 
+            letter-spacing: 2px; 
+            text-transform: uppercase;
+        }
 
-  <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+        .author-tag {
+            color: #0057e7;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: block;
+            margin-top: -5px;
+            margin-bottom: 5px;
+            letter-spacing: 4px;
+        }
 
-  <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="myapp">
-  <link rel="apple-touch-icon" href="assets/images/logo.png">
+        .subtitle { color: #888; font-size: 0.9rem; margin-bottom: 25px; display: block; border-bottom: 1px solid #333; padding-bottom: 15px;}
+        
+        /* CONTROLS */
+        .control-group { margin-bottom: 20px; }
+        label { display: block; color: #aaa; margin-bottom: 5px; font-size: 0.8rem; }
+        
+        select, .file-btn {
+            width: 100%;
+            padding: 12px;
+            background: #333;
+            color: white;
+            border: 1px solid #444;
+            font-size: 1rem;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="assets/images/logo.png"/>
+        /* Styling the Optgroups */
+        optgroup {
+            background: #222;
+            color: #0057e7;
+            font-style: normal;
+            font-weight: bold;
+        }
+        
+        /* Hiding real file input */
+        #folderInput { display: none; }
+        .file-btn {
+            display: block;
+            text-align: center;
+            background: #0057e7; /* Pioneer Blue */
+            border: none;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .file-btn:hover { background: #004ecb; }
 
-  <title>myapp</title>
-  <link rel="manifest" href="manifest.json">
+        /* RESULTS SCREEN */
+        .screen {
+            margin-top: 30px;
+            background: #000;
+            border: 4px solid #333;
+            padding: 20px;
+            min-height: 150px;
+            font-family: 'Courier New', monospace;
+            display: none;
+        }
+        .success { color: #00ff00; }
+        .error { color: #ff0044; }
+        .warning { color: #ffcc00; }
+        
+        .cdj-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #222;
+        }
+        .icon { font-size: 1.5rem; margin-right: 15px; }
+        .info { display: flex; flex-direction: column; }
+        .title { font-weight: bold; font-size: 1.1rem; }
+        .meta { font-size: 0.8rem; color: #666; }
+        
+        .issues-list {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            max-height: 100px;
+            overflow-y: auto;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+        .issue-item { margin-bottom: 5px; }
+        .disclaimer {
+            margin-top:20px; border-top:1px solid #333; padding-top:10px; color:#666; font-size:0.7rem;
+        }
+
+        /* --- SOCIAL SUPPORT BUTTON --- */
+        .social-box {
+            margin-top: 30px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+        }
+        .insta-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 10px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 4px;
+            /* Instagram Gradient */
+            background: linear-gradient(45deg, #405de6, #5851db, #833ab4, #c13584, #e1306c, #fd1d1d);
+            transition: transform 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .insta-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(193, 53, 132, 0.5);
+        }
+        .small-text { font-size: 0.8rem; color: #888; }
+
+    </style>
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+
+<div class="container">
+    <h1>CDJ SIMULATOR</h1>
+    <span class="author-tag">BY NO-MAD</span>
+    <span class="subtitle">USB VALIDATOR & COMPATIBILITY CHECKER</span>
+
+    <div class="control-group">
+        <label>TARGET EQUIPMENT</label>
+        <select id="modelSelect">
+            <optgroup label="Multi Players (CDJ/XDJ)">
+                <option value="CDJ-3000">CDJ-3000</option>
+                <option value="CDJ-2000NXS2">CDJ-2000 Nexus 2</option>
+                <option value="CDJ-2000NXS">CDJ-2000 Nexus (No FLAC)</option>
+                <option value="XDJ-1000MK2">XDJ-1000 MK2</option>
+                <option value="XDJ-1000">XDJ-1000 MK1 (No FLAC)</option>
+                <option value="XDJ-700">XDJ-700 (No FLAC)</option>
+            </optgroup>
+            
+            <optgroup label="All-In-One Systems">
+                <option value="XDJ-AZ">AlphaTheta XDJ-AZ</option>
+                <option value="OPUS-QUAD">Pioneer DJ OPUS-QUAD</option>
+                <option value="OMNIS-DUO">AlphaTheta OMNIS-DUO</option>
+                <option value="XDJ-RX3">Pioneer DJ XDJ-RX3</option>
+                <option value="XDJ-XZ">Pioneer DJ XDJ-XZ (No exFAT)</option>
+                <option value="XDJ-RR">Pioneer DJ XDJ-RR (No FLAC)</option>
+            </optgroup>
+        </select>
+    </div>
+
+    <div class="control-group">
+        <label>SELECT YOUR USB DRIVE</label>
+        <label for="folderInput" class="file-btn">💿 LOAD USB FOLDER</label>
+        <input type="file" id="folderInput" webkitdirectory directory multiple>
+    </div>
+
+    <div id="resultScreen" class="screen">
+        <div id="statusText">WAITING FOR USB...</div>
+    </div>
+
+    <div class="social-box">
+        <span class="small-text">Liked this tool? Support me here:</span>
+        <a href="https://www.instagram.com/no.mad.dj_/" target="_blank" class="insta-btn">
+            Follow No-Mad on Instagram 🇬🇷
+        </a>
+    </div>
+
+</div>
+
+<script>
+    // --- THE BRAIN: HARDWARE PROFILES ---
+    const PROFILES = {
+        // Multi Players
+        "CDJ-2000NXS":  { name: "CDJ-2000NXS",  noFlac: true,  exFat: false },
+        "CDJ-2000NXS2": { name: "CDJ-2000NXS2", noFlac: false, exFat: false },
+        "CDJ-3000":     { name: "CDJ-3000",     noFlac: false, exFat: true },
+        "XDJ-1000":     { name: "XDJ-1000 MK1", noFlac: true,  exFat: false },
+        "XDJ-1000MK2":  { name: "XDJ-1000 MK2", noFlac: false, exFat: false },
+        "XDJ-700":      { name: "XDJ-700",      noFlac: true,  exFat: false },
+
+        // All-In-One Systems
+        "XDJ-RR":       { name: "XDJ-RR",       noFlac: true,  exFat: false }, // Only FAT32/HFS+
+        "XDJ-XZ":       { name: "XDJ-XZ",       noFlac: false, exFat: false }, // Supports FLAC, but No exFAT
+        "XDJ-RX3":      { name: "XDJ-RX3",      noFlac: false, exFat: true },
+        "OPUS-QUAD":    { name: "OPUS-QUAD",    noFlac: false, exFat: true },
+        "OMNIS-DUO":    { name: "OMNIS-DUO",    noFlac: false, exFat: true },
+        "XDJ-AZ":       { name: "XDJ-AZ",       noFlac: false, exFat: true }
+    };
+
+    document.getElementById('folderInput').addEventListener('change', function(e) {
+        const files = e.target.files;
+        const modelKey = document.getElementById('modelSelect').value;
+        const profile = PROFILES[modelKey];
+        const screen = document.getElementById('resultScreen');
+        const status = document.getElementById('statusText');
+        
+        screen.style.display = 'block';
+        status.innerHTML = "SCANNING...";
+
+        // 1. ANALYSIS VARIABLES
+        let hasPioneer = false;
+        let trackCount = 0;
+        let errors = [];
+        let flacFiles = [];
+
+        // 2. SCANNING LOGIC
+        for (let i = 0; i < files.length; i++) {
+            const path = files[i].webkitRelativePath || files[i].name;
+            const name = files[i].name.toLowerCase();
+
+            // Check for Database
+            // Mac uses .PIONEER (hidden), Windows uses PIONEER
+            if (path.includes("/PIONEER/") || path.includes("/.PIONEER/") || path === "PIONEER" || path === ".PIONEER") {
+                hasPioneer = true;
+            }
+
+            // Check Audio Files
+            if (name.endsWith('.mp3') || name.endsWith('.wav') || name.endsWith('.aiff') || name.endsWith('.m4a')) {
+                trackCount++;
+            }
+
+            // Check FLAC compatibility
+            if (name.endsWith('.flac')) {
+                trackCount++;
+                if (profile.noFlac) {
+                    flacFiles.push(files[i].name);
+                }
+            }
+        }
+
+        // 3. GENERATE REPORT
+        let html = "";
+        let isSuccess = true;
+
+        // CHECK 1: Database
+        if (hasPioneer) {
+            html += `<div class='cdj-row'><span class='icon success'>✅</span><div class='info'><span class='title'>REKORDBOX DATABASE</span><span class='meta'>Ready to load cues & grids</span></div></div>`;
+        } else {
+            isSuccess = false;
+            errors.push("Missing 'PIONEER' folder. Did you export via Rekordbox?");
+            html += `<div class='cdj-row'><span class='icon error'>❌</span><div class='info'><span class='title'>NO DATABASE FOUND</span><span class='meta'>USB will be slow / No Cues</span></div></div>`;
+        }
+
+        // CHECK 2: Tracks (FLAC)
+        if (flacFiles.length > 0) {
+            isSuccess = false;
+            errors.push(`Found ${flacFiles.length} FLAC files. ${profile.name} DOES NOT support FLAC.`);
+            html += `<div class='cdj-row'><span class='icon error'>⚠️</span><div class='info'><span class='title'>UNSUPPORTED FILES</span><span class='meta'>${profile.name} cannot play FLAC</span></div></div>`;
+        } else {
+             html += `<div class='cdj-row'><span class='icon success'>🎵</span><div class='info'><span class='title'>${trackCount} TRACKS VALIDATED</span><span class='meta'>Audio format compatible</span></div></div>`;
+        }
+
+        // CHECK 3: File System Warning (Manual Check)
+        if (!profile.exFat) {
+            // If the model does NOT support exFAT (Older CDJs, XDJ-RR, XDJ-XZ)
+            html += `<div class='cdj-row'><span class='icon warning'>💾</span><div class='info'><span class='title'>FORMAT CHECK REQUIRED</span><span class='meta'>Ensure drive is FAT32 (Not exFAT)</span></div></div>`;
+        } else {
+            // Modern gear supports exFAT
+             html += `<div class='cdj-row'><span class='icon success'>💾</span><div class='info'><span class='title'>MODERN FORMAT SUPPORT</span><span class='meta'>${profile.name} reads exFAT & FAT32</span></div></div>`;
+        }
+
+        // 4. DISPLAY RESULT
+        if (!isSuccess) {
+            html += `<div class='issues-list warning'><strong>ISSUES DETECTED:</strong><br>`;
+            errors.forEach(e => html += `<div class='issue-item'>• ${e}</div>`);
+            html += `</div>`;
+        } else {
+             html += `<div class='issues-list success' style='text-align:center; margin-top:20px; font-size:1.2rem;'><strong>READY FOR GIG 🚀</strong></div>`;
+        }
+        
+        // Manual warning regarding browser limitations
+        html += `<div class='disclaimer'>
+                 *NOTE: Browsers cannot detect if your USB is FAT32 or NTFS. <br>
+                 If using <strong>${profile.name}</strong>, please manually verify your USB is <strong>${profile.exFat ? 'exFAT or FAT32' : 'FAT32'}</strong>.</div>`;
+
+        status.innerHTML = html;
+    });
+</script>
+
 </body>
 </html>

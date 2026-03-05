@@ -1,11 +1,13 @@
-
+'''
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'dart:ui';
+
 import 'scan_provider.dart';
-import 'results_page.dart';
 import 'models/dj_gear.dart';
+import 'results_page.dart'; // We'll build the results here directly
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -13,103 +15,43 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          children: [
-            const Text('CDJ SIMULATOR', textAlign: TextAlign.center),
-            Text(
-              'BY NO-MAD',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade400,
-              ),
-            ),
-          ],
-        ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.black,
-      ),
-      backgroundColor: const Color(0xFF1E1E1E),
-      body: Column(
+      body: Stack(
         children: [
-          // CDJ Screen
-          Expanded(
-            flex: 2,
-            child: Container(
-              margin: const EdgeInsets.all(16.0),
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(8.0),
-                border: Border.all(color: Colors.grey.shade800),
-              ),
-              child: Consumer<ScanProvider>(
-                builder: (context, scanProvider, child) {
-                  if (scanProvider.isLoading) {
-                    return const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF0000)),
-                          ),
-                          SizedBox(height: 20),
-                          Text('Analyzing USB...',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  } else if (scanProvider.results != null) { // Check if results are available
-                    // Use a post-frame callback to navigate after the build is complete
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const ResultsPage()),
-                      );
-                    });
-
-                    return const Center(
-                      child: Text('Scan complete. Loading results...',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                        ),
-                      ),
-                    );
-                  } else {
-                    return const _GearSelectionScreen();
-                  }
-                },
+          // Background Image with Dark Overlay
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: NetworkImage('https://images.unsplash.com/photo-1571266028243-371695039980?q=80&w=2070&auto=format&fit=crop'),
+                fit: BoxFit.cover,
               ),
             ),
           ),
-          // CDJ Body
-          Expanded(
-            flex: 3,
+          BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
             child: Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: const BoxDecoration(
-                color: Color(0xFF121212),
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16.0),
-                  topRight: Radius.circular(16.0),
-                ),
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    const _HardwareButtons(),
-                    const SizedBox(height: 30),
-                    const _SupportSection(),
+              color: Colors.black.withOpacity(0.85),
+            ),
+          ),
+
+          // Main Content
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20.0),
+              child: Container(
+                width: 650,
+                padding: const EdgeInsets.all(30),
+                decoration: BoxDecoration(
+                  color: const Color.fromRGBO(26, 26, 26, 0.95),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF333333)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color.fromRGBO(0, 87, 231, 0.4),
+                      blurRadius: 50,
+                    )
                   ],
                 ),
+                child: const _ContentBody(),
               ),
             ),
           ),
@@ -119,135 +61,227 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class _GearSelectionScreen extends StatefulWidget {
-  const _GearSelectionScreen();
-
-  @override
-  State<_GearSelectionScreen> createState() => _GearSelectionScreenState();
-}
-
-class _GearSelectionScreenState extends State<_GearSelectionScreen> {
-  String? _selectedCategory;
+class _ContentBody extends StatelessWidget {
+  const _ContentBody();
 
   @override
   Widget build(BuildContext context) {
     final scanProvider = Provider.of<ScanProvider>(context);
-    final gearCategories = djGearList.map((e) => e.category).toSet().toList();
-    final gearInCategory = _selectedCategory == null
-        ? <DjGear>[]
-        : djGearList.where((gear) => gear.category == _selectedCategory).toList();
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
-            borderRadius: BorderRadius.circular(8.0),
-            border: Border.all(color: Colors.grey.shade800),
-          ),
-          child: DropdownButton<String>(
-            value: _selectedCategory,
-            hint: const Text('Select a category', style: TextStyle(color: Colors.white)),
-            isExpanded: true,
-            dropdownColor: const Color(0xFF1E1E1E),
-            underline: const SizedBox(),
-            onChanged: (String? value) {
-              setState(() {
-                _selectedCategory = value;
-                scanProvider.selectGear(null);
-              });
-            },
-            items: gearCategories.map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value, style: const TextStyle(color: Colors.white)),
-              );
-            }).toList(),
+        // Header
+        const Text(
+          'CDJ SIMULATOR',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            letterSpacing: 2,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 20),
-        if (_selectedCategory != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
-              borderRadius: BorderRadius.circular(8.0),
-              border: Border.all(color: Colors.grey.shade800),
-            ),
-            child: DropdownButton<DjGear>(
-              value: scanProvider.selectedGear,
-              hint: const Text('Select a gear', style: TextStyle(color: Colors.white)),
-              isExpanded: true,
-              dropdownColor: const Color(0xFF1E1E1E),
-              underline: const SizedBox(),
-              onChanged: (DjGear? value) {
-                if (value != null) {
-                  scanProvider.selectGear(value);
-                }
-              },
-              items: gearInCategory.map<DropdownMenuItem<DjGear>>((DjGear value) {
-                return DropdownMenuItem<DjGear>(
-                  value: value,
-                  child: Text(value.name, style: const TextStyle(color: Colors.white)),
-                );
-              }).toList(),
-            ),
+        const Text(
+          'BY NO-MAD',
+          style: TextStyle(
+            color: Color(0xFF0057e7),
+            fontSize: 19.2, // 1.2rem
+            fontWeight: FontWeight.bold,
+            letterSpacing: 4,
           ),
+        ),
+        const SizedBox(height: 15),
+        const Text(
+          'USB VALIDATOR & COMPATIBILITY CHECKER',
+          style: TextStyle(
+            color: Color(0xFF888888),
+            fontSize: 14.4, // 0.9rem
+          ),
+        ),
+        const SizedBox(height: 15),
+        const Divider(color: Color(0xFF333333)),
+        const SizedBox(height: 15),
+
+        // Controls
+        const _GearSelectionDropdown(),
+        const SizedBox(height: 20),
+        const _LoadUsbButton(),
+        const SizedBox(height: 30),
+
+        // Result Screen or Loading state
+        if (scanProvider.isLoading)
+          const _LoadingScreen(),
+        if (scanProvider.results != null)
+          const ResultsPage(), // Display results directly
+
+        const SizedBox(height: 30),
+
+        // Social Box
+        const _SocialBox(),
       ],
     );
   }
 }
 
-class _HardwareButtons extends StatelessWidget {
-  const _HardwareButtons();
+class _GearSelectionDropdown extends StatefulWidget {
+  const _GearSelectionDropdown();
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<ScanProvider>(
-      builder: (context, scanProvider, child) {
-        final isGearSelected = scanProvider.selectedGear != null;
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            Image.asset(
-              'assets/images/jogwheel.png',
-              width: 250,
-              height: 250,
+  __GearSelectionDropdownState createState() => __GearSelectionDropdownState();
+}
+
+class __GearSelectionDropdownState extends State<_GearSelectionDropdown> {
+  
+  List<DropdownMenuItem<DjGear>> _buildDropdownItems() {
+    final List<DropdownMenuItem<DjGear>> items = [];
+    final categories = djGearList.map((e) => e.category).toSet().toList();
+
+    for (var category in categories) {
+      // Add a non-selectable header
+      items.add(
+        DropdownMenuItem(
+          enabled: false,
+          child: Text(
+            category,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0057e7),
             ),
-            SizedBox(
-              width: 180,
-              height: 180,
-              child: ElevatedButton(
-                onPressed: isGearSelected && !scanProvider.isLoading
-                    ? () => scanProvider.selectAndScanDirectory()
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isGearSelected ? const Color(0xFFFFFF00) : Colors.grey.shade800,
-                  foregroundColor: Colors.black,
-                  shape: const CircleBorder(),
-                  elevation: 8,
-                  shadowColor: isGearSelected ? const Color(0xFFFFFF00).withOpacity(0.5) : Colors.transparent,
-                ),
-                child: const Text(
-                  'SCAN',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 36,
-                  ),
-                ),
-              ),
+          ),
+        ),
+      );
+
+      // Add gear for this category
+      final gearInCategory = djGearList.where((gear) => gear.category == category);
+      for (var gear in gearInCategory) {
+        items.add(
+          DropdownMenuItem(
+            value: gear,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8.0),
+              child: Text(gear.name, style: const TextStyle(color: Colors.white)),
             ),
-          ],
+          ),
         );
-      },
+      }
+    }
+    return items;
+  }
+  
+  @override
+  Widget build(BuildContext context) {
+    final scanProvider = Provider.of<ScanProvider>(context, listen: true);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'TARGET EQUIPMENT',
+          style: TextStyle(color: Color(0xFFaaaaaa), fontSize: 12.8), // 0.8rem
+        ),
+        const SizedBox(height: 5),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF333333),
+            border: Border.all(color: const Color(0xFF444444)),
+          ),
+          child: DropdownButton<DjGear>(
+            value: scanProvider.selectedGear,
+            hint: const Text('Select Equipment...', style: TextStyle(color: Colors.white70)),
+            isExpanded: true,
+            dropdownColor: const Color(0xFF222222),
+            underline: const SizedBox(),
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+            onChanged: (DjGear? value) {
+              if (value != null) {
+                scanProvider.selectGear(value);
+              }
+            },
+            items: _buildDropdownItems(),
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _SupportSection extends StatelessWidget {
-  const _SupportSection();
+
+class _LoadUsbButton extends StatelessWidget {
+  const _LoadUsbButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final scanProvider = Provider.of<ScanProvider>(context);
+    final bool isGearSelected = scanProvider.selectedGear != null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'SELECT YOUR USB DRIVE',
+          style: TextStyle(color: Color(0xFFaaaaaa), fontSize: 12.8),
+        ),
+        const SizedBox(height: 5),
+        ElevatedButton.icon(
+          icon: const Text('💿', style: TextStyle(fontSize: 20)),
+          label: const Text('LOAD USB FOLDER'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isGearSelected ? const Color(0xFF0057e7) : Colors.grey.shade700,
+            foregroundColor: Colors.white,
+            minimumSize: const Size(double.infinity, 50),
+            textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          ),
+          onPressed: isGearSelected && !scanProvider.isLoading
+              ? () {
+                  scanProvider.selectAndScanDirectory();
+                }
+              : null,
+        ),
+      ],
+    );
+  }
+}
+
+
+class _LoadingScreen extends StatelessWidget {
+  const _LoadingScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(top: 30),
+      padding: const EdgeInsets.all(20),
+      height: 150,
+      decoration: BoxDecoration(
+        color: Colors.black,
+        border: Border.all(color: const Color(0xFF333333), width: 4),
+      ),
+      child: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0057e7)),
+            ),
+            SizedBox(height: 20),
+            Text(
+              'SCANNING...',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontFamily: 'Courier New',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SocialBox extends StatelessWidget {
+  const _SocialBox();
 
   void _launchURL(String url) async {
     final Uri uri = Uri.parse(url);
@@ -259,50 +293,47 @@ class _SupportSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(8.0),
-          border: Border.all(color: Colors.grey.shade800)
-        ),
-        child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      padding: const EdgeInsets.only(top: 20),
+      margin: const EdgeInsets.only(top: 30),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: Color(0xFF333333))),
+      ),
+      child: Column(
         children: [
           const Text(
-            'SUPPORT THE PROJECT',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Color(0xFFFFFF00),
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: () => _launchURL('https://www.instagram.com/no.mad.dj_/'),
-            icon: const FaIcon(FontAwesomeIcons.instagram, color: Colors.white),
-            label: const Text('Follow on Instagram'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFE1306C),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 12.0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-            ),
+            'Liked this tool? Support me here:',
+            style: TextStyle(color: Color(0xFF888888), fontSize: 12.8),
           ),
           const SizedBox(height: 10),
-          ElevatedButton.icon(
-            onPressed: () => _launchURL('https://buymeacoffee.com/baklavaproject'),
-            icon: const FaIcon(FontAwesomeIcons.coffee, color: Colors.black),
-            label: const Text('Buy me a Coffee'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFFDD00),
-              foregroundColor: Colors.black,
-              padding: const EdgeInsets.symmetric(vertical: 12.0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
+          InkWell(
+            onTap: () => _launchURL('https://www.instagram.com/no.mad.dj_/'),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF405de6),
+                    Color(0xFF5851db),
+                    Color(0xFF833ab4),
+                    Color(0xFFc13584),
+                    Color(0xFFe1306c),
+                    Color(0xFFfd1d1d),
+                  ],
+                  begin: Alignment.bottomLeft,
+                  end: Alignment.topRight,
+                ),
+              ),
+              child: const Center(
+                child: Text(
+                  'Follow No-Mad on Instagram 🇬🇷',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
+                ),
               ),
             ),
           ),
@@ -311,3 +342,4 @@ class _SupportSection extends StatelessWidget {
     );
   }
 }
+''
